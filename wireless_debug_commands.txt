@@ -1,0 +1,26 @@
+Wireless Debugging Quick Reference
+====================================
+
+1. PAIR your device (first time only):
+   $env:ANDROID_HOME = "C:\Users\jgreineder\AppData\Local\Android\sdk"
+   & "$env:ANDROID_HOME\platform-tools\adb.exe" pair <IP>:<PAIRING_PORT>
+   (Enter the 6-digit code when prompted)
+
+2. CONNECT to your device:
+   & "$env:ANDROID_HOME\platform-tools\adb.exe" connect <IP>:<CONNECTION_PORT>
+
+3. CHECK connected devices:
+   & "$env:ANDROID_HOME\platform-tools\adb.exe" devices
+   OR
+   flutter devices
+
+4. DISCONNECT when done:
+   & "$env:ANDROID_HOME\platform-tools\adb.exe" disconnect <IP>:<PORT>
+
+5. DEPLOY and see logs:
+   flutter run
+
+Note: The pairing port and connection port are DIFFERENT!
+- Pairing port: shown when you tap "Pair device with pairing code"
+- Connection port: shown on the main Wireless Debugging screen
+
