@@ -97,6 +97,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
 
     var access = await _notificationService.notificationAccess();
+    if (!mounted) return;
     if (access != NotificationAccess.granted && access != NotificationAccess.unavailable) {
       final result = await requestNotificationsWithExplanation(context);
       if (!mounted) return;
