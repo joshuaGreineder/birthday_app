@@ -1,4 +1,4 @@
-package com.example.birthday_app
+package com.greinederlabs.happaroo
 
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider

@@ -1,14 +1,26 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!-- Reminders. Requested when the user turns reminders on, not at startup. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
-    <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
+    <!-- Contact import. Requested only from Import from contacts. -->
     <uses-permission android:name="android.permission.READ_CONTACTS"/>
+    <!-- Restores inexact reminders after reboot via flutter_local_notifications
+         ScheduledNotificationBootReceiver. This plugin version does not merge the
+         receiver itself; the app manifest registers it below. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <!-- Notification vibration. flutter_local_notifications 17.2.4 also merges this. -->
     <uses-permission android:name="android.permission.VIBRATE"/>
-    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
+
+    <!-- Birthday reminders are not exact alarms and do not need a battery exemption.
+         flutter_local_notifications 17.2.4's library manifest does not declare these.
+         The removes stop a plugin merge from shipping them. -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" tools:node="remove"/>
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" tools:node="remove"/>
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" tools:node="remove"/>
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" tools:node="remove"/>
+
     <application
-        android:label="Event Tracker"
+        android:label="Happaroo"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -38,7 +50,7 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
-        
+
         <!-- Widget Providers -->
         <receiver android:name=".SingleEventWidgetProvider"
             android:exported="true">
@@ -49,28 +61,30 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_single_event_info" />
         </receiver>
-        
-        <!-- Boot Receiver to reschedule notifications after device restart -->
-        <receiver 
-            android:name=".BootReceiver"
-            android:enabled="true"
-            android:exported="true">
+
+        <!-- Delivers inexact reminders scheduled by flutter_local_notifications. -->
+        <receiver
+            android:exported="false"
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
+        <!-- Restores those reminders after boot and package replace. -->
+        <receiver
+            android:exported="false"
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
             <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
-                <action android:name="android.intent.action.PACKAGE_REPLACED" />
-                <data android:scheme="package" />
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
             </intent-filter>
         </receiver>
-        
-        <!-- Notification Receiver for native AlarmManager -->
-        <receiver 
-            android:name=".NotificationReceiver"
-            android:enabled="true"
-            android:exported="false"
-            android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
+
+        <!-- Rewrites reminder instants onto the new local day, then asks the plugin to restore them. -->
+        <receiver
+            android:name=".TimezoneChangeReceiver"
+            android:exported="false">
             <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.TIME_SET" />
             </intent-filter>
         </receiver>
     </application>

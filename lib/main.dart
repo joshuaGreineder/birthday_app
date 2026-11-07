@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'app_config.dart';
 import 'services/storage_service.dart';
 import 'services/notification_service.dart';
 import 'services/widget_service.dart';
@@ -11,7 +12,7 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Start the app immediately - initialize everything in background
-  runApp(const EventTrackerApp());
+  runApp(const HapparooApp());
   
   // Initialize all services in the background after app starts
   _initializeBackgroundServices();
@@ -43,20 +44,21 @@ Future<void> _initializeNotifications() async {
   try {
     final notificationService = NotificationService();
     await notificationService.init();
-    
-    // Ensure storage is initialized before reading settings
+
+    // Ensure storage is initialized before reading settings.
+    // Do not request notification permission here. Scheduling runs only
+    // when the user has already allowed notifications.
     final storage = StorageService();
     await storage.init();
-    
-    // Request notification permissions if notifications are enabled
+
     if (storage.getNotificationsEnabled()) {
       try {
-        final hasPermission = await notificationService.requestPermissions();
-        if (hasPermission) {
+        final access = await notificationService.notificationAccess();
+        if (access == NotificationAccess.granted) {
           await notificationService.scheduleDailyNotifications();
         }
       } catch (e) {
-        debugPrint('Error with notification permissions: $e');
+        debugPrint('Error scheduling reminders: $e');
       }
     }
   } catch (e) {
@@ -78,20 +80,34 @@ void unawaited(Future<void> future) {
   future.catchError((e) => debugPrint('Unawaited future error: $e'));
 }
 
-class EventTrackerApp extends StatefulWidget {
-  const EventTrackerApp({super.key});
+class HapparooApp extends StatefulWidget {
+  const HapparooApp({super.key});
 
   @override
-  State<EventTrackerApp> createState() => _EventTrackerAppState();
+  State<HapparooApp> createState() => _HapparooAppState();
 }
 
-class _EventTrackerAppState extends State<EventTrackerApp> {
+class _HapparooAppState extends State<HapparooApp> with WidgetsBindingObserver {
   ThemeMode _themeMode = ThemeMode.system;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadThemeMode();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      NotificationService().onAppResumed();
+    }
   }
 
   void _loadThemeMode() {
@@ -136,7 +152,7 @@ class _EventTrackerAppState extends State<EventTrackerApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Event Tracker',
+      title: kAppDisplayName,
       debugShowCheckedModeBanner: false,
       theme: _buildLightTheme(),
       darkTheme: _buildDarkTheme(),

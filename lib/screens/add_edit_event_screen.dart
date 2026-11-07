@@ -94,8 +94,9 @@ class _AddEditEventScreenState extends State<AddEditEventScreen> {
       // Update notifications and widgets in the background (non-blocking)
       if (_storage.getNotificationsEnabled()) {
         final notificationService = NotificationService();
-        notificationService.scheduleDailyNotifications().catchError((e) {
+        notificationService.scheduleDailyNotifications().catchError((Object e) {
           debugPrint('Error scheduling notifications: $e');
+          return false;
         });
       }
       

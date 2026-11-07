@@ -1,7 +1,7 @@
 # Google Calendar Integration Setup
 
 ## Overview
-The app now includes Google Calendar sync functionality. However, you need to configure Google Cloud credentials for it to work.
+Calendar sync code is in the project and hidden for v1 (`kCalendarSyncEnabled` is false). Startup does not call Google sign-in. The steps below are for a later release that turns the flag on. Do not register the example application id.
 
 ## Setup Steps
 
@@ -25,13 +25,13 @@ The app now includes Google Calendar sync functionality. However, you need to co
    - Click "Create Credentials" > "OAuth client ID"
    - Choose application type:
      * **For Web**: Select "Web application"
-       - Name it (e.g., "Birthday App Web")
+       - Name it (e.g., "Happaroo Web")
        - Add authorized JavaScript origins: `http://localhost:port` (for local testing) or your domain
        - Add authorized redirect URIs: `http://localhost:port` (for local testing) or your domain
        - Click "Create"
        - **Copy the Client ID** (it looks like: `123456789-abcdefghijklmnop.apps.googleusercontent.com`)
    - **For Android**: Select "Android"
-     - Add your package name: `com.example.birthday_app`
+     - Add your package name: `com.greinederlabs.happaroo`
      - Add SHA-1 fingerprint (get it using: `keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android`)
      - Click "Create"
 

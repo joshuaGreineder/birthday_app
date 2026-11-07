@@ -1,4 +1,4 @@
-# birthday_app
+# Happaroo
 
 A new Flutter project.
 

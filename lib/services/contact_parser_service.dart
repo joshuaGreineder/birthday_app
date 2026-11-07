@@ -1,7 +1,17 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../app_config.dart';
 import '../models/event.dart' as event_model;
+
+enum ContactImportStatus { success, permissionDenied, unavailable, failed }
+
+class ContactImportResult {
+  final ContactImportStatus status;
+  final List<PotentialBirthday> birthdays;
+
+  const ContactImportResult(this.status, this.birthdays);
+}
 
 class ContactParserService {
   static ContactParserService? _instance;
@@ -13,29 +23,24 @@ class ContactParserService {
 
   ContactParserService._internal();
 
-  Future<List<PotentialBirthday>> parseContacts() async {
+  Future<ContactImportResult> parseContacts() async {
     if (kIsWeb) {
-      return []; // Contacts not available on web
+      return const ContactImportResult(ContactImportStatus.unavailable, []);
     }
 
     try {
-      // Check and request contacts permission
+      // Permission is requested by the screen, after an in-app explanation.
       final permissionStatus = await Permission.contacts.status;
       debugPrint('Contacts permission status: $permissionStatus');
-      
+
       if (!permissionStatus.isGranted) {
-        final permission = await Permission.contacts.request();
-        debugPrint('Contacts permission request result: $permission');
-        if (!permission.isGranted) {
-          debugPrint('Contacts permission denied');
-          return [];
-        }
+        debugPrint('Contacts permission denied');
+        return const ContactImportResult(ContactImportStatus.permissionDenied, []);
       }
 
-      // Request read permission specifically for flutter_contacts
       if (!await FlutterContacts.requestPermission(readonly: true)) {
         debugPrint('FlutterContacts permission denied');
-        return [];
+        return const ContactImportResult(ContactImportStatus.permissionDenied, []);
       }
 
       // Get all contacts with properties (including events/birthdays)
@@ -242,17 +247,19 @@ class ContactParserService {
         debugPrint('This might indicate an issue with date extraction on this device.');
       }
       
-      return potentialBirthdays;
+      return ContactImportResult(ContactImportStatus.success, potentialBirthdays);
     } catch (e, stackTrace) {
       debugPrint('Error parsing contacts: $e');
       debugPrint('Stack trace: $stackTrace');
-      return [];
+      return const ContactImportResult(ContactImportStatus.failed, []);
     }
   }
 
   Future<List<PotentialBirthday>> parseGoogleCalendar() async {
-    // This would require Google Calendar API integration
-    // For now, return empty list - can be implemented later
+    if (!kCalendarSyncEnabled) {
+      return [];
+    }
+    // Unimplemented. Kept so calendar sync can be turned on later.
     return [];
   }
 }
