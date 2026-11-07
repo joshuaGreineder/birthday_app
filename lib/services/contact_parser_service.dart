@@ -62,6 +62,26 @@ class ContactParserService {
       }
       debugPrint('Contacts with events: $contactsWithEvents, Total events: $totalEvents');
 
+      final potentialBirthdays = birthdaysFromContacts(contacts);
+
+      debugPrint('Found ${potentialBirthdays.length} contacts with birthdays');
+      debugPrint('Summary: ${contacts.length} total contacts, $contactsWithEvents contacts with events, $totalEvents total events');
+      
+      // If we found contacts with events but no birthdays, log this for debugging
+      if (contactsWithEvents > 0 && potentialBirthdays.isEmpty) {
+        debugPrint('WARNING: Found $contactsWithEvents contacts with events but extracted 0 birthdays.');
+        debugPrint('This might indicate an issue with date extraction on this device.');
+      }
+      
+      return ContactImportResult(ContactImportStatus.success, potentialBirthdays);
+    } catch (e, stackTrace) {
+      debugPrint('Error parsing contacts: $e');
+      debugPrint('Stack trace: $stackTrace');
+      return const ContactImportResult(ContactImportStatus.failed, []);
+    }
+  }
+
+  List<PotentialBirthday> birthdaysFromContacts(List<Contact> contacts) {
       final potentialBirthdays = <PotentialBirthday>[];
 
       for (final contact in contacts) {
@@ -237,22 +257,7 @@ class ContactParserService {
           ),
         );
       }
-
-      debugPrint('Found ${potentialBirthdays.length} contacts with birthdays');
-      debugPrint('Summary: ${contacts.length} total contacts, $contactsWithEvents contacts with events, $totalEvents total events');
-      
-      // If we found contacts with events but no birthdays, log this for debugging
-      if (contactsWithEvents > 0 && potentialBirthdays.isEmpty) {
-        debugPrint('WARNING: Found $contactsWithEvents contacts with events but extracted 0 birthdays.');
-        debugPrint('This might indicate an issue with date extraction on this device.');
-      }
-      
-      return ContactImportResult(ContactImportStatus.success, potentialBirthdays);
-    } catch (e, stackTrace) {
-      debugPrint('Error parsing contacts: $e');
-      debugPrint('Stack trace: $stackTrace');
-      return const ContactImportResult(ContactImportStatus.failed, []);
-    }
+    return potentialBirthdays;
   }
 
   Future<List<PotentialBirthday>> parseGoogleCalendar() async {

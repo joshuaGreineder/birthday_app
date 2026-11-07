@@ -162,9 +162,9 @@ class GoogleCalendarService {
 // HTTP client that uses Google auth headers
 class GoogleAuthClient extends http.BaseClient {
   final Map<String, String> _headers;
-  final http.Client _client = http.Client();
+  final http.Client _client;
 
-  GoogleAuthClient(this._headers);
+  GoogleAuthClient(this._headers, {http.Client? client}) : _client = client ?? http.Client();
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) {

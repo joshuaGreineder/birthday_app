@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../app_config.dart';
@@ -8,6 +10,7 @@ import '../services/storage_service.dart';
 import '../services/widget_service.dart';
 import '../widgets/permission_prompts.dart';
 import '../utils/event_calculator.dart';
+import '../utils/user_message.dart';
 import '../widgets/event_card.dart';
 import 'add_edit_event_screen.dart';
 
@@ -21,6 +24,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final StorageService _storage = StorageService();
   final TextEditingController _searchController = TextEditingController();
+  StreamSubscription<dynamic>? _eventsSubscription;
   List<Event> _allEvents = [];
   List<Event> _upcomingEvents = [];
   List<Event> _filteredEvents = [];
@@ -49,6 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    _eventsSubscription?.cancel();
     _searchController.dispose();
     super.dispose();
   }
@@ -97,9 +102,10 @@ class _HomeScreenState extends State<HomeScreen> {
       await _refreshReminderAccess();
       if (mounted) setState(() => _isLoading = false);
     } catch (e) {
+      debugPrint('Failed to load events: $e');
       if (mounted) {
         setState(() {
-          _error = e.toString();
+          _error = couldNot('load events');
           _isLoading = false;
         });
       }
@@ -107,7 +113,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _setupListener() {
-    _storage.watchEvents().listen((event) {
+    _eventsSubscription = _storage.watchEvents().listen((event) {
       if (mounted) {
         _loadEvents(); // Fire and forget - don't await in stream listener
       }
@@ -171,6 +177,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (searchQuery.isNotEmpty) {
       filtered = filtered.where((e) => 
         e.name.toLowerCase().contains(searchQuery) ||
+        e.group.toLowerCase().contains(searchQuery) ||
         (e.notes?.toLowerCase().contains(searchQuery) ?? false)
       ).toList();
     }
@@ -222,7 +229,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               const Icon(Icons.error_outline, size: 48, color: Colors.red),
               const SizedBox(height: 16),
-              Text('Error: $_error'),
+              Text(_error!),
               const SizedBox(height: 16),
               FilledButton(onPressed: _initializeAndLoad, child: const Text('Retry')),
             ],
@@ -684,12 +691,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(40),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(40),
+      child: Column(
+        children: [
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
@@ -724,7 +729,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-      ),
     );
   }
 }

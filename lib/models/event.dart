@@ -30,6 +30,10 @@ class Event extends HiveObject {
   @HiveField(5)
   final String? customEventTypeId; // ID of custom event type if using one
 
+  /// Optional label such as "Family". Field index 6 is new; older saves omit it.
+  @HiveField(6)
+  final String group;
+
   Event({
     required this.id,
     required this.name,
@@ -37,6 +41,7 @@ class Event extends HiveObject {
     required this.originalDate,
     this.notes,
     this.customEventTypeId,
+    this.group = '',
   });
 
   Event copyWith({
@@ -46,6 +51,7 @@ class Event extends HiveObject {
     DateTime? originalDate,
     String? notes,
     String? customEventTypeId,
+    String? group,
   }) {
     return Event(
       id: id ?? this.id,
@@ -54,6 +60,7 @@ class Event extends HiveObject {
       originalDate: originalDate ?? this.originalDate,
       notes: notes ?? this.notes,
       customEventTypeId: customEventTypeId ?? this.customEventTypeId,
+      group: group ?? this.group,
     );
   }
 }

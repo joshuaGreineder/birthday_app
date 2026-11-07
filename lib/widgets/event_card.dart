@@ -137,7 +137,7 @@ class EventCard extends StatelessWidget {
             currentText = "0 years old";
           } else {
             // On the birthday, they are turning this age (age already represents completed years)
-            milestoneText = "Now ${age + 1} years old!";
+            milestoneText = EventCalculator.nowYearsText(age + 1);
             currentText = "Birthday today! 🎉";
           }
         } else {

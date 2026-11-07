@@ -398,7 +398,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
           milestoneText = "Born today! 🎂";
         } else {
           // On the birthday, they are now that age
-          milestoneText = "Now ${age + 1} years old!";
+          milestoneText = EventCalculator.nowYearsText(age + 1);
         }
       } else {
         // For newborns, always say "Turning 1 year" instead of months

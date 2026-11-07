@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import '../models/event.dart';
 import '../models/custom_event_type.dart';
 import '../services/storage_service.dart';
 import '../services/notification_service.dart';
 import '../services/widget_service.dart';
+import '../utils/user_message.dart';
 import 'custom_event_type_screen.dart';
 
 class AddEditEventScreen extends StatefulWidget {
@@ -21,6 +21,7 @@ class _AddEditEventScreenState extends State<AddEditEventScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _notesController = TextEditingController();
+  final _groupController = TextEditingController();
   final _storage = StorageService();
   
   EventType _eventType = EventType.birthday;
@@ -36,6 +37,7 @@ class _AddEditEventScreenState extends State<AddEditEventScreen> {
     if (widget.event != null) {
       _nameController.text = widget.event!.name;
       _notesController.text = widget.event!.notes ?? '';
+      _groupController.text = widget.event!.group;
       _eventType = widget.event!.eventType;
       _selectedCustomTypeId = widget.event!.customEventTypeId;
       _selectedDate = widget.event!.originalDate;
@@ -52,6 +54,7 @@ class _AddEditEventScreenState extends State<AddEditEventScreen> {
   void dispose() {
     _nameController.dispose();
     _notesController.dispose();
+    _groupController.dispose();
     super.dispose();
   }
 
@@ -80,6 +83,7 @@ class _AddEditEventScreenState extends State<AddEditEventScreen> {
         originalDate: _selectedDate,
         notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
         customEventTypeId: _selectedCustomTypeId,
+        group: _groupController.text.trim(),
       );
 
       if (widget.event == null) {
@@ -107,8 +111,9 @@ class _AddEditEventScreenState extends State<AddEditEventScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isSaving = false);
+        debugPrint('Could not save event: $e');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(content: Text(couldNot('save this event'))),
         );
       }
     }
@@ -136,18 +141,25 @@ class _AddEditEventScreenState extends State<AddEditEventScreen> {
     );
 
     if (confirmed == true && mounted) {
-      await _storage.deleteEvent(widget.event!.id);
-      
-      // Reschedule notifications if enabled
-      if (_storage.getNotificationsEnabled()) {
-        final notificationService = NotificationService();
-        await notificationService.scheduleDailyNotifications();
+      try {
+        await _storage.deleteEvent(widget.event!.id);
+        try {
+          if (_storage.getNotificationsEnabled()) {
+            await NotificationService().scheduleDailyNotifications();
+          }
+          await WidgetService.updateWidgetData();
+        } catch (e) {
+          debugPrint('Saved the delete, but reminders could not be refreshed: $e');
+        }
+        if (mounted) Navigator.of(context).pop(true);
+      } catch (e) {
+        debugPrint('Could not delete event: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(couldNot('delete this event'))),
+          );
+        }
       }
-      
-      // Update widget data
-      await WidgetService.updateWidgetData();
-      
-      if (mounted) Navigator.of(context).pop(true);
     }
   }
 
@@ -330,6 +342,37 @@ class _AddEditEventScreenState extends State<AddEditEventScreen> {
                     Icon(Icons.edit_calendar_rounded, color: Theme.of(context).colorScheme.primary),
                   ],
                 ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            _buildLabel('Group (optional)'),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _groupController,
+              textCapitalization: TextCapitalization.words,
+              decoration: InputDecoration(
+                hintText: 'e.g., Family',
+                filled: true,
+                fillColor: Theme.of(context).colorScheme.surface,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).colorScheme.primary,
+                    width: 2,
+                  ),
+                ),
+                prefixIcon: const Icon(Icons.group_rounded),
               ),
             ),
             const SizedBox(height: 24),
