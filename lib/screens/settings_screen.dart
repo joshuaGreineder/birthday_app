@@ -890,14 +890,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildCard({required Widget child}) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+    return Material(
+      color: Theme.of(context).colorScheme.surface,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
+        side: BorderSide(
           color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1),
         ),
       ),
+      clipBehavior: Clip.antiAlias,
       child: child,
     );
   }
