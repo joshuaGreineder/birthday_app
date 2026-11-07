@@ -165,12 +165,15 @@ void main() {
 
     expect(preview.fileError, isNull);
     expect(preview.duplicates.single.event.name, 'Grace');
-    expect(preview.added.single.typeLabel, 'Graduation');
-    expect(preview.added.single.event.originalDate, DateTime(2000, 2, 3));
+    expect(preview.added.map((row) => row.event.name), ['No year', 'New type']);
+    expect(preview.added.first.typeLabel, 'Anniversary');
+    expect(preview.added.first.event.originalDate, DateTime(4, 3, 14));
+    expect(preview.added.last.typeLabel, 'Graduation');
+    expect(preview.added.last.event.originalDate, DateTime(2000, 2, 3));
     expect(preview.newCustomTypes.single.name, 'Graduation');
-    expect(preview.problems.map((problem) => problem.rowNumber), containsAll([3, 4, 5]));
+    expect(preview.problems.map((problem) => problem.rowNumber), containsAll([3, 5]));
     expect(preview.problems.map((problem) => problem.message).join('\n'), contains('February 29'));
-    expect(preview.problems.map((problem) => problem.message).join('\n'), contains('no year'));
+    expect(preview.problems.map((problem) => problem.message).join('\n'), isNot(contains('no year')));
     expect(preview.problems.map((problem) => problem.message).join('\n'), contains('Type is blank'));
     expect(preview.canApply, isTrue);
   });
@@ -196,6 +199,25 @@ void main() {
     final parsed = jsonDecode(codec.exportJson(events: const [], customTypes: const [], settings: const {}));
     expect(parsed['schemaVersion'], 1);
     expect(parseEventDate('01/02/2003').date, DateTime(2003, 1, 2));
+    expect(parseEventDate('3/14').date, DateTime(4, 3, 14));
+    expect(parseEventDate('02-29').date, DateTime(4, 2, 29));
+    expect(BackupCodec.formatExportDate(DateTime(4, 2, 29)), '02/29');
+    final yearless = sample(name: 'No year', date: DateTime(4, 3, 14));
+    final yearlessJson = codec.exportJson(events: [yearless], customTypes: const [], settings: const {});
+    expect(yearlessJson, contains('"date": "03/14"'));
+    expect(yearlessJson, isNot(contains('0004')));
+    final yearlessCsv = codec.exportCsv(events: [yearless], customTypes: const []);
+    expect(yearlessCsv, contains('03/14'));
+    final roundTrip = codec.preview(
+      fileName: 'yearless.json',
+      contents: yearlessJson,
+      existingEvents: const [],
+      existingTypes: const [],
+    );
+    expect(roundTrip.fileError, isNull);
+    expect(roundTrip.problems, isEmpty);
+    expect(roundTrip.added.single.event.originalDate, DateTime(4, 3, 14));
+    expect(roundTrip.canApply, isTrue);
     expect(parseEventDate('not-a-date').error, contains('not a valid date'));
     expect(parseEventDate('').error, contains('blank'));
     expect(parseCsv('a,b\r\n1,2\r\n'), [

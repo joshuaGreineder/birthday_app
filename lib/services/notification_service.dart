@@ -301,6 +301,12 @@ class NotificationService {
   }
 
   String _formatNotificationMessage(Event event, {required int daysBefore}) {
+    if (!EventCalculator.hasKnownYear(event)) {
+      final kind = event.eventType == EventType.birthday ? 'birthday' : 'anniversary';
+      if (daysBefore == 0) return "${event.name}'s $kind is today!";
+      if (daysBefore == 1) return "${event.name}'s $kind is tomorrow!";
+      return "${event.name}'s $kind is in $daysBefore days!";
+    }
     if (event.eventType == EventType.birthday) {
       final age = EventCalculator.getAge(event);
       final nextAge = age + 1;

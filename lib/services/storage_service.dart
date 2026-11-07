@@ -185,6 +185,23 @@ class StorageService {
     await saveSetting('timeRange', timeRange);
   }
 
+  bool isOnboardingComplete() {
+    return getSetting('onboardingComplete', defaultValue: false) == true;
+  }
+
+  Future<void> setOnboardingComplete() async {
+    await saveSetting('onboardingComplete', true);
+  }
+
+  /// `all`, or the trimmed group name. Empty string means Ungrouped.
+  String getGroupFilter() {
+    return getSetting('groupFilter', defaultValue: 'all') as String;
+  }
+
+  Future<void> setGroupFilter(String groupFilter) async {
+    await saveSetting('groupFilter', groupFilter);
+  }
+
   Map<String, dynamic> exportSettings() {
     final box = _settingsBox;
     if (box == null) return {};

@@ -5,13 +5,8 @@ import 'package:flutter/material.dart';
 import '../models/custom_event_type.dart';
 import '../models/event.dart';
 import '../utils/event_calculator.dart';
+import '../utils/yearless_date.dart';
 import 'storage_service.dart';
-
-/// Why a month/day with no year cannot be stored: [Event.originalDate] is a
-/// [DateTime], which always has a year. Null would drop the month and day.
-/// There is no existing sentinel for "no year". A new Hive field was not added.
-const String yearlessDateReason =
-    'A month and day with no year cannot be saved. Enter a full date such as 3/14/1990 or 1990-03-14.';
 
 class RowProblem {
   final int rowNumber;
@@ -127,12 +122,7 @@ class BackupCodec {
     }
   }
 
-  static String formatExportDate(DateTime date) {
-    final year = date.year.toString().padLeft(4, '0');
-    final month = date.month.toString().padLeft(2, '0');
-    final day = date.day.toString().padLeft(2, '0');
-    return '$year-$month-$day';
-  }
+  static String formatExportDate(DateTime date) => formatStoredDate(date);
 
   static String typeLabel(Event event, List<CustomEventType> types) {
     final customId = event.customEventTypeId;
@@ -495,15 +485,22 @@ class ParsedEventDate {
   const ParsedEventDate({this.date, this.error});
 }
 
-/// Accepts YYYY-MM-DD, MM/DD/YYYY, and M/D/YYYY. Slash or dash dates with a
-/// leading month use US order when the first number can be a month.
+/// Accepts YYYY-MM-DD, MM/DD/YYYY, M/D/YYYY, and month/day with no year (`M/D` or `M-D`).
+/// A date with no year is stored as year 4, the leap-year sentinel. Slash or dash
+/// dates with a leading month use US order when the first number can be a month.
 ParsedEventDate parseEventDate(String raw) {
   final value = raw.trim();
   if (value.isEmpty) {
     return const ParsedEventDate(error: 'Date is blank.');
   }
-  if (RegExp(r'^\d{1,2}[/-]\d{1,2}$').hasMatch(value)) {
-    return const ParsedEventDate(error: yearlessDateReason);
+  final monthDay = RegExp(r'^(\d{1,2})[/-](\d{1,2})$').firstMatch(value);
+  if (monthDay != null) {
+    return _buildDate(
+      kYearlessSentinelYear,
+      int.parse(monthDay.group(1)!),
+      int.parse(monthDay.group(2)!),
+      value,
+    );
   }
 
   final iso = RegExp(r'^(\d{4})-(\d{1,2})-(\d{1,2})$').firstMatch(value);

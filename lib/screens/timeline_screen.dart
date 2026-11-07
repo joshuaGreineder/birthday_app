@@ -1,8 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../models/event.dart';
 import '../models/custom_event_type.dart';
 import '../services/storage_service.dart';
+import '../theme/app_space.dart';
+import '../theme/app_theme.dart';
 import '../utils/event_calculator.dart';
+import '../utils/user_message.dart';
+import '../utils/yearless_date.dart';
+import '../widgets/screen_status.dart';
 import 'add_edit_event_screen.dart';
 
 class TimelineScreen extends StatefulWidget {
@@ -15,8 +22,10 @@ class TimelineScreen extends StatefulWidget {
 class _TimelineScreenState extends State<TimelineScreen> {
   final StorageService _storage = StorageService();
   late PageController _pageController;
+  StreamSubscription<dynamic>? _eventsSubscription;
   List<Event> _events = [];
   bool _isLoading = true;
+  String? _error;
   int _currentPage = 0;
   
   // All 12 months for the perpetual calendar
@@ -36,6 +45,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
 
   @override
   void dispose() {
+    _eventsSubscription?.cancel();
     _pageController.dispose();
     super.dispose();
   }
@@ -45,14 +55,25 @@ class _TimelineScreenState extends State<TimelineScreen> {
       await _storage.init();
       _loadEvents();
       _setupListener();
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _error = null;
+        });
+      }
     } catch (e) {
-      if (mounted) setState(() => _isLoading = false);
+      debugPrint('Failed to load timeline: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _error = couldNot('load events');
+        });
+      }
     }
   }
 
   void _setupListener() {
-    _storage.watchEvents().listen((event) {
+    _eventsSubscription = _storage.watchEvents().listen((event) {
       if (mounted) _loadEvents();
     });
   }
@@ -102,10 +123,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
+      return Scaffold(body: ScreenStatus.loading());
+    }
+    if (_error != null) {
       return Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(color: Theme.of(context).colorScheme.primary),
-        ),
+        body: ScreenStatus.error(title: _error!, onRetry: _initializeAndLoad),
       );
     }
 
@@ -135,6 +157,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: "timeline_fab",
+        tooltip: 'Add event',
         onPressed: _addEvent,
         child: const Icon(Icons.add_rounded),
       ),
@@ -150,6 +173,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
         children: [
           // Previous month button
           IconButton(
+            tooltip: 'Previous month',
             onPressed: _currentPage > 0 ? () => _goToMonth(_currentPage - 1) : null,
             icon: Icon(
               Icons.chevron_left_rounded,
@@ -163,9 +187,8 @@ class _TimelineScreenState extends State<TimelineScreen> {
               children: [
                 Text(
                   _months[_currentPage],
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
                 Text(
                   '$eventCount event${eventCount != 1 ? 's' : ''}',
@@ -179,6 +202,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
           ),
           // Next month button
           IconButton(
+            tooltip: 'Next month',
             onPressed: _currentPage < 11 ? () => _goToMonth(_currentPage + 1) : null,
             icon: Icon(
               Icons.chevron_right_rounded,
@@ -193,33 +217,43 @@ class _TimelineScreenState extends State<TimelineScreen> {
   }
 
   Widget _buildMonthDots() {
-    return Container(
-      height: 24,
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(12, (index) {
+    final scheme = Theme.of(context).colorScheme;
+    return SizedBox(
+      height: AppSpace.touch,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: 12,
+        itemBuilder: (context, index) {
           final isSelected = index == _currentPage;
           final hasEvents = _getEventCountForMonth(index + 1) > 0;
-          
-          return GestureDetector(
-            onTap: () => _goToMonth(index),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: isSelected ? 24 : 8,
-              height: 8,
-              margin: const EdgeInsets.symmetric(horizontal: 3),
-              decoration: BoxDecoration(
-                color: isSelected 
-                    ? Theme.of(context).colorScheme.primary
-                    : hasEvents
-                        ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.3)
-                        : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(4),
+          return Semantics(
+            button: true,
+            selected: isSelected,
+            label: _months[index],
+            child: InkWell(
+              onTap: () => _goToMonth(index),
+              child: SizedBox(
+                width: AppSpace.touch,
+                height: AppSpace.touch,
+                child: Center(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: isSelected ? AppSpace.lg : AppSpace.xs,
+                    height: AppSpace.xs,
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? scheme.primary
+                          : hasEvents
+                              ? scheme.primary.withValues(alpha: 0.45)
+                              : scheme.outlineVariant,
+                      borderRadius: BorderRadius.circular(AppSpace.xs),
+                    ),
+                  ),
+                ),
               ),
             ),
           );
-        }),
+        },
       ),
     );
   }
@@ -228,33 +262,10 @@ class _TimelineScreenState extends State<TimelineScreen> {
     final events = _getEventsForMonth(month);
 
     if (events.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.event_available_rounded,
-              size: 64,
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.15),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No events in ${_months[month - 1]}',
-              style: TextStyle(
-                fontSize: 16,
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Swipe to see other months',
-              style: TextStyle(
-                fontSize: 14,
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
-              ),
-            ),
-          ],
-        ),
+      return ScreenStatus.empty(
+        icon: Icons.event_available_rounded,
+        title: 'No events in ${_months[month - 1]}',
+        body: 'Swipe to see other months, or add someone.',
       );
     }
 
@@ -286,44 +297,35 @@ class _TimelineScreenState extends State<TimelineScreen> {
                 child: Column(
                   children: [
                     Container(
-                      width: 48,
-                      height: 56,
+                      constraints: const BoxConstraints(minWidth: AppSpace.touch, minHeight: AppSpace.touch),
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpace.xs, vertical: AppSpace.xs),
                       decoration: BoxDecoration(
                         color: isToday
                             ? Theme.of(context).colorScheme.primary
-                            : Theme.of(context).colorScheme.surface,
-                        borderRadius: BorderRadius.circular(12),
-                        border: !isToday ? Border.all(
-                          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.15),
-                        ) : null,
-                        boxShadow: isToday ? [
-                          BoxShadow(
-                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ] : null,
+                            : Theme.of(context).colorScheme.surfaceContainerLow,
+                        borderRadius: BorderRadius.circular(AppSpace.sm),
+                        border: !isToday
+                            ? Border.all(color: Theme.of(context).colorScheme.outlineVariant)
+                            : null,
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
                             _getOrdinalSuffix(day),
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
-                              color: isToday 
-                                  ? Colors.white.withValues(alpha: 0.8) 
-                                  : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
-                            ),
+                            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                                  color: isToday
+                                      ? Theme.of(context).colorScheme.onPrimary
+                                      : Theme.of(context).colorScheme.onSurfaceVariant,
+                                ),
                           ),
                           Text(
                             '$day',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                              color: isToday ? Colors.white : Theme.of(context).colorScheme.onSurface,
-                            ),
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  color: isToday
+                                      ? Theme.of(context).colorScheme.onPrimary
+                                      : Theme.of(context).colorScheme.onSurface,
+                                ),
                           ),
                         ],
                       ),
@@ -367,16 +369,17 @@ class _TimelineScreenState extends State<TimelineScreen> {
     }
     
     // Colors based on event type (custom type takes precedence)
-    final color = customType != null
-        ? customType.primaryColor
-        : (isBirthday ? const Color(0xFFF59E0B) : const Color(0xFFEC4899));
+    final color = customType?.primaryColor ?? EventPalette.accent(context, birthday: isBirthday);
 
     String milestoneText;
     String subtitleText;
     final daysUntil = EventCalculator.getDaysUntil(event);
-    
-    // Use custom event type templates if available
-    if (customType != null) {
+    final knownYear = EventCalculator.hasKnownYear(event);
+
+    if (!knownYear) {
+      milestoneText = customType?.name ?? (isBirthday ? 'Birthday' : 'Anniversary');
+      subtitleText = formatMonthDay(event.originalDate);
+    } else if (customType != null) {
       final years = EventCalculator.getYearsTogether(event);
       final nextYears = years + 1;
       
@@ -385,7 +388,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
       } else {
         milestoneText = customType.turningTextTemplate.replaceAll('{years}', nextYears.toString());
       }
-      subtitleText = "Since ${event.originalDate.year}";
+      subtitleText = 'Since ${event.originalDate.year}';
     } else if (isBirthday) {
       final age = EventCalculator.getAge(event);
       final babyAge = EventCalculator.getBabyAge(event);
@@ -459,81 +462,26 @@ class _TimelineScreenState extends State<TimelineScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Text(event.name, style: Theme.of(context).textTheme.titleMedium),
                     Text(
-                      event.name,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      event.displayGroup,
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
                     ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: color.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            milestoneText,
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: color,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          subtitleText,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              // Days until badge
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: daysUntil == 0
-                      ? const Color(0xFF10B981).withValues(alpha: 0.12)
-                      : daysUntil <= 7
-                          ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
-                          : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  children: [
+                    const SizedBox(height: AppSpace.xxs),
                     Text(
-                      daysUntil == 0 ? 'Today!' : '$daysUntil',
-                      style: TextStyle(
-                        fontSize: daysUntil == 0 ? 11 : 16,
-                        fontWeight: FontWeight.w700,
-                        color: daysUntil == 0
-                            ? const Color(0xFF10B981)
-                            : daysUntil <= 7
-                                ? Theme.of(context).colorScheme.primary
-                                : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                      ),
+                      milestoneText,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color: knownYear && customType == null ? color : Theme.of(context).colorScheme.onSurface,
+                          ),
                     ),
-                    if (daysUntil > 0)
-                      Text(
-                        'days',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: daysUntil <= 7
-                              ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.7)
-                              : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
-                        ),
-                      ),
+                    Text(subtitleText, style: Theme.of(context).textTheme.bodyMedium),
+                    const SizedBox(height: AppSpace.xxs),
+                    Text(
+                      daysUntil == 0 ? 'Today' : 'In $daysUntil days',
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
                   ],
                 ),
               ),

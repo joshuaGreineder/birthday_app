@@ -44,6 +44,12 @@ class Event extends HiveObject {
     this.group = '',
   });
 
+  /// Blank groups are shown as Ungrouped. This is not a Hive field.
+  String get displayGroup {
+    final trimmed = group.trim();
+    return trimmed.isEmpty ? 'Ungrouped' : trimmed;
+  }
+
   Event copyWith({
     String? id,
     String? name,

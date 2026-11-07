@@ -9,9 +9,11 @@ import '../services/notification_service.dart';
 import '../services/storage_service.dart';
 import '../services/widget_service.dart';
 import '../widgets/permission_prompts.dart';
+import '../theme/app_space.dart';
 import '../utils/event_calculator.dart';
 import '../utils/user_message.dart';
 import '../widgets/event_card.dart';
+import '../widgets/screen_status.dart';
 import 'add_edit_event_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -32,6 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _remindersBlocked = false;
   String? _error;
   String _filterType = 'all'; // all, birthday, anniversary, or custom event type ID
+  String _groupFilter = 'all'; // all, or a display group such as Ungrouped
   int _timeRange = 365; // days: 7, 30, 90, 180, 365 (all)
   bool _showSearch = false;
   List<CustomEventType> _customEventTypes = [];
@@ -92,6 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
       
       // Load saved filters
       _filterType = _storage.getFilterType();
+      _groupFilter = _storage.getGroupFilter();
       _timeRange = _storage.getTimeRange();
       
       // Load custom event types
@@ -172,6 +176,10 @@ class _HomeScreenState extends State<HomeScreen> {
       ).toList();
     }
     
+    if (_groupFilter != 'all') {
+      filtered = filtered.where((e) => e.displayGroup == _groupFilter).toList();
+    }
+
     // Apply search filter
     final searchQuery = _searchController.text.toLowerCase().trim();
     if (searchQuery.isNotEmpty) {
@@ -204,36 +212,14 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(color: Theme.of(context).colorScheme.primary),
-              const SizedBox(height: 16),
-              Text(
-                'Loading events...',
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6)),
-              ),
-            ],
-          ),
-        ),
-      );
+      return Scaffold(body: ScreenStatus.loading());
     }
 
     if (_error != null) {
       return Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.red),
-              const SizedBox(height: 16),
-              Text(_error!),
-              const SizedBox(height: 16),
-              FilledButton(onPressed: _initializeAndLoad, child: const Text('Retry')),
-            ],
-          ),
+        body: ScreenStatus.error(
+          title: _error!,
+          onRetry: _initializeAndLoad,
         ),
       );
     }
@@ -244,55 +230,38 @@ class _HomeScreenState extends State<HomeScreen> {
         slivers: [
           // App bar with search toggle
           SliverAppBar(
-            expandedHeight: _showSearch ? 130 : 100,
-            floating: false,
             pinned: true,
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-            flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
-              title: _showSearch ? null : Text(
-                kAppDisplayName,
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-              ),
-              background: _showSearch ? Padding(
-                padding: const EdgeInsets.fromLTRB(16, 60, 16, 16),
-                child: TextField(
-                  controller: _searchController,
-                  autofocus: true,
-                  decoration: InputDecoration(
-                    hintText: 'Search events...',
-                    prefixIcon: const Icon(Icons.search_rounded),
-                    suffixIcon: IconButton(
-                      icon: const Icon(Icons.close_rounded),
-                      onPressed: () {
-                        _searchController.clear();
-                        setState(() => _showSearch = false);
-                        _applyFilters();
-                      },
+            toolbarHeight: _toolbarHeight(context),
+            title: _showSearch
+                ? TextField(
+                    controller: _searchController,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      hintText: 'Search events',
+                      prefixIcon: const Icon(Icons.search_rounded),
+                      suffixIcon: IconButton(
+                        tooltip: 'Close search',
+                        icon: const Icon(Icons.close_rounded),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() => _showSearch = false);
+                          _applyFilters();
+                        },
+                      ),
                     ),
-                    filled: true,
-                    fillColor: Theme.of(context).colorScheme.surface,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
+                    onChanged: (value) => _applyFilters(),
+                  )
+                : Text(kAppDisplayName, style: Theme.of(context).textTheme.headlineSmall),
+            actions: _showSearch
+                ? null
+                : [
+                    IconButton(
+                      tooltip: 'Search events',
+                      icon: const Icon(Icons.search_rounded),
+                      onPressed: () => setState(() => _showSearch = true),
                     ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  ),
-                  onChanged: (value) => _applyFilters(),
-                ),
-              ) : null,
-            ),
-            actions: _showSearch ? null : [
-              IconButton(
-                icon: const Icon(Icons.search_rounded),
-                onPressed: () => setState(() => _showSearch = true),
-              ),
-              const SizedBox(width: 8),
-            ],
+                  ],
           ),
           if (_remindersBlocked)
             SliverToBoxAdapter(
@@ -326,7 +295,10 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           if (_upcomingEvents.isEmpty)
-            SliverFillRemaining(child: _buildEmptyState())
+            SliverPadding(
+              padding: const EdgeInsets.only(bottom: 120),
+              sliver: SliverToBoxAdapter(child: _buildEmptyState()),
+            )
           else ...[
             // Stats row
             SliverToBoxAdapter(
@@ -443,6 +415,26 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(AppSpace.lg, 0, AppSpace.lg, AppSpace.sm),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Group', style: Theme.of(context).textTheme.labelLarge),
+                    const SizedBox(height: AppSpace.xs),
+                    Wrap(
+                      spacing: AppSpace.xs,
+                      runSpacing: AppSpace.xs,
+                      children: [
+                        _buildGroupChip('All groups', 'all'),
+                        ..._groupNames.map((name) => _buildGroupChip(name, name)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
             // Results count
             SliverToBoxAdapter(
               child: Padding(
@@ -456,7 +448,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    if (_timeRange < 365 || _filterType != 'all') ...[
+                    if (_timeRange < 365 || _filterType != 'all' || _groupFilter != 'all') ...[
                       const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -466,11 +458,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         child: Text(
                           _buildActiveFiltersText(),
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Theme.of(context).colorScheme.primary,
-                            fontWeight: FontWeight.w500,
-                          ),
+                          style: Theme.of(context).textTheme.labelLarge,
                         ),
                       ),
                     ],
@@ -481,37 +469,22 @@ class _HomeScreenState extends State<HomeScreen> {
             // Event list
             if (_filteredEvents.isEmpty)
               SliverFillRemaining(
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.search_off_rounded,
-                        size: 48,
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No events in this range',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextButton(
-                        onPressed: () {
-                          setState(() {
-                            _timeRange = 365;
-                            _filterType = 'all';
-                          });
-                          _storage.setTimeRange(365);
-                          _storage.setFilterType('all');
-                          _applyFilters();
-                        },
-                        child: const Text('Clear filters'),
-                      ),
-                    ],
-                  ),
+                        child: ScreenStatus.empty(
+                  icon: Icons.search_off_rounded,
+                  title: 'No events in this range',
+                  body: 'Clear the filters to see every upcoming event.',
+                  actionLabel: 'Clear filters',
+                  onAction: () {
+                    setState(() {
+                      _timeRange = 365;
+                      _filterType = 'all';
+                      _groupFilter = 'all';
+                    });
+                    _storage.setTimeRange(365);
+                    _storage.setFilterType('all');
+                    _storage.setGroupFilter('all');
+                    _applyFilters();
+                  },
                 ),
               )
             else
@@ -548,7 +521,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 FilledButton(
                                   onPressed: () => Navigator.pop(context, true),
-                                  style: FilledButton.styleFrom(backgroundColor: Colors.red),
+                                  style: FilledButton.styleFrom(
+                                    backgroundColor: Theme.of(context).colorScheme.error,
+                                    foregroundColor: Theme.of(context).colorScheme.onError,
+                                  ),
                                   child: const Text('Delete'),
                                 ),
                               ],
@@ -574,6 +550,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: "home_fab",
+        tooltip: 'Add event',
         onPressed: _addEvent,
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add Event'),
@@ -587,6 +564,9 @@ class _HomeScreenState extends State<HomeScreen> {
       final option = _timeRangeOptions.firstWhere((o) => o['value'] == _timeRange);
       parts.add(option['shortLabel']);
     }
+    if (_groupFilter != 'all') {
+      parts.add(_groupFilter);
+    }
     if (_filterType != 'all') {
       if (_filterType == 'birthday') {
         parts.add('Birthdays');
@@ -599,8 +579,8 @@ class _HomeScreenState extends State<HomeScreen> {
           orElse: () => CustomEventType(
             id: '', 
             name: '', 
-            primaryColorValue: Colors.blue.value, 
-            backgroundColorValue: Colors.lightBlue.value,
+            primaryColorValue: Colors.blue.toARGB32(),
+            backgroundColorValue: Colors.lightBlue.toARGB32(),
             iconCodePoint: Icons.event_rounded.codePoint,
             turningTextTemplate: '',
             nowTextTemplate: '',
@@ -617,21 +597,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildFilterChip(String label, String value, IconData? icon) {
     final isSelected = _filterType == value;
+    final scheme = Theme.of(context).colorScheme;
     return FilterChip(
-      label: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icon != null) ...[
-            Icon(
+      avatar: icon == null
+          ? null
+          : Icon(
               icon,
-              size: 16,
-              color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+              color: isSelected ? scheme.onPrimary : scheme.onSurfaceVariant,
             ),
-            const SizedBox(width: 4),
-          ],
-          Text(label),
-        ],
-      ),
+      label: Text(label),
       selected: isSelected,
       onSelected: (selected) {
         setState(() => _filterType = value);
@@ -640,10 +614,12 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       selectedColor: Theme.of(context).colorScheme.primary,
       labelStyle: TextStyle(
-        color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface,
+        color: isSelected
+            ? Theme.of(context).colorScheme.onPrimary
+            : Theme.of(context).colorScheme.onSurface,
         fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
       ),
-      checkmarkColor: Colors.white,
+      checkmarkColor: Theme.of(context).colorScheme.onPrimary,
       showCheckmark: false,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     );
@@ -654,81 +630,94 @@ class _HomeScreenState extends State<HomeScreen> {
     final anniversaries = _allEvents.where((e) => e.eventType == EventType.anniversary).length;
     final thisWeek = _upcomingEvents.where((e) => EventCalculator.getDaysUntil(e) <= 7).length;
 
+    final cards = [
+      _buildStatCard(Icons.cake_rounded, 'Birthdays', birthdays),
+      _buildStatCard(Icons.favorite_rounded, 'Anniversaries', anniversaries),
+      _buildStatCard(Icons.notifications_active_rounded, 'This week', thisWeek),
+    ];
+    final narrow = MediaQuery.sizeOf(context).width < 520 ||
+        MediaQuery.textScalerOf(context).scale(1) > 1.3;
+    if (narrow) {
+      return Column(
+        children: [
+          for (var i = 0; i < cards.length; i++) ...[
+            if (i > 0) const SizedBox(height: AppSpace.xs),
+            cards[i],
+          ],
+        ],
+      );
+    }
     return Row(
       children: [
-        Expanded(child: _buildStatCard(Icons.cake_rounded, 'Birthdays', birthdays, const Color(0xFFF59E0B))),
-        const SizedBox(width: 10),
-        Expanded(child: _buildStatCard(Icons.favorite_rounded, 'Anniversaries', anniversaries, const Color(0xFFEC4899))),
-        const SizedBox(width: 10),
-        Expanded(child: _buildStatCard(Icons.notifications_active_rounded, 'This Week', thisWeek, const Color(0xFF10B981))),
+        for (var i = 0; i < cards.length; i++) ...[
+          if (i > 0) const SizedBox(width: AppSpace.xs),
+          Expanded(child: cards[i]),
+        ],
       ],
     );
   }
 
-  Widget _buildStatCard(IconData icon, String label, int value, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: color, size: 22),
-          const SizedBox(height: 6),
-          Text(
-            '$value',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: color),
-          ),
-          Text(
-            label,
-            style: TextStyle(fontSize: 11, color: color.withValues(alpha: 0.8), fontWeight: FontWeight.w500),
-          ),
-        ],
+  Widget _buildStatCard(IconData icon, String label, int value) {
+    final scheme = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
+    return Semantics(
+      label: '$value $label',
+      child: Container(
+        padding: const EdgeInsets.all(AppSpace.sm),
+        decoration: BoxDecoration(
+          color: scheme.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(AppSpace.sm),
+          border: Border.all(color: scheme.outlineVariant),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: scheme.primary),
+            const SizedBox(height: AppSpace.xs),
+            Text('$value', style: text.titleLarge),
+            Text(label, textAlign: TextAlign.center, style: text.bodyMedium),
+          ],
+        ),
       ),
     );
   }
 
+  Widget _buildGroupChip(String label, String value) {
+    final selected = _groupFilter == value;
+    final scheme = Theme.of(context).colorScheme;
+    return FilterChip(
+      label: Text(label),
+      selected: selected,
+      onSelected: (next) {
+        if (!next && selected) return;
+        setState(() => _groupFilter = value);
+        _storage.setGroupFilter(value);
+        _applyFilters();
+      },
+      selectedColor: scheme.secondaryContainer,
+      labelStyle: TextStyle(
+        color: selected ? scheme.onSecondaryContainer : scheme.onSurface,
+      ),
+      showCheckmark: false,
+    );
+  }
+
+  List<String> get _groupNames {
+    final names = _allEvents.map((event) => event.displayGroup).toSet().toList()..sort();
+    return names;
+  }
+
+  double _toolbarHeight(BuildContext context) {
+    final scale = MediaQuery.textScalerOf(context).scale(1);
+    return AppSpace.touch + (24 * scale);
+  }
+
   Widget _buildEmptyState() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(40),
-      child: Column(
-        children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.celebration_rounded,
-                size: 56,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'No events yet',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Add birthdays and anniversaries\nto never forget a special day!',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 24),
-            FilledButton.icon(
-              onPressed: _addEvent,
-              icon: const Icon(Icons.add_rounded),
-              label: const Text('Add First Event'),
-            ),
-          ],
-        ),
+    return ScreenStatus.empty(
+      icon: Icons.celebration_rounded,
+      title: 'No events yet',
+      body: 'Add birthdays and anniversaries so the next one is easy to find.',
+      actionLabel: 'Add First Event',
+      onAction: _addEvent,
     );
   }
 }

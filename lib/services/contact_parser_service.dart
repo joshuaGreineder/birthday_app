@@ -3,6 +3,8 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../app_config.dart';
 import '../models/event.dart' as event_model;
+import '../utils/event_calculator.dart';
+import '../utils/yearless_date.dart';
 
 enum ContactImportStatus { success, permissionDenied, unavailable, failed }
 
@@ -187,15 +189,22 @@ class ContactParserService {
                   final day = dynamicEvent.day;
                   debugPrint('  year: $year, month: $month, day: $day');
                   
-                  if (year != null && month != null && day != null) {
-                    // Handle year-only birthdays (some contacts don't have year)
-                    // Use a default year if year is 0 or invalid
-                    final actualYear = (year is int && year > 0) ? year : DateTime.now().year;
+                  if (month != null && day != null) {
                     final actualMonth = month is int ? month : (month is String ? int.tryParse(month) : null);
                     final actualDay = day is int ? day : (day is String ? int.tryParse(day) : null);
-                    
+                    final yearInt = year is int ? year : (year is String ? int.tryParse(year) : null);
+
                     if (actualMonth != null && actualDay != null && actualMonth > 0 && actualMonth <= 12 && actualDay > 0 && actualDay <= 31) {
-                      eventDate = DateTime(actualYear, actualMonth, actualDay);
+                      if (yearInt != null && yearInt > 0 && yearInt != kYearlessSentinelYear) {
+                        if (actualMonth == 2 && actualDay == 29 && !EventCalculator.isLeapYear(yearInt)) {
+                          debugPrint('Skipping February 29 in $yearInt');
+                        } else {
+                          eventDate = DateTime(yearInt, actualMonth, actualDay);
+                        }
+                      } else {
+                        // Null, zero, or the sentinel: keep the month and day, hide the age.
+                        eventDate = yearlessDate(actualMonth, actualDay);
+                      }
                       debugPrint('Found via year/month/day: $eventDate');
                     }
                   }

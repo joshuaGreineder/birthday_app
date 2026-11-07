@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
+import '../utils/icon_picker.dart';
+
 part 'custom_event_type.g.dart';
 
 @HiveType(typeId: 2)
@@ -40,8 +42,8 @@ class CustomEventType extends HiveObject {
     required this.currentTextTemplate,
   });
 
-  // Helper to get IconData from stored code point
-  IconData get icon => IconData(iconCodePoint, fontFamily: 'MaterialIcons');
+  /// A const [IconData] from the picker, so release builds can tree-shake icons.
+  IconData get icon => IconPicker.iconForCodePoint(iconCodePoint);
 
   // Helper to get Color from stored int
   Color get primaryColor => Color(primaryColorValue);

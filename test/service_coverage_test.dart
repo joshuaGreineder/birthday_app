@@ -62,8 +62,16 @@ void main() {
 
     expect(found.map((item) => item.name), contains('Ada Lovelace'));
     expect(found.map((item) => item.name), contains('Year zero'));
+    expect(found.map((item) => item.name), contains('No year'));
     expect(found.map((item) => item.name), isNot(contains('Anniversary only')));
-    expect(found.map((item) => item.name), isNot(contains('No year')));
+    final noYear = found.firstWhere((item) => item.name == 'No year');
+    expect(noYear.date.year, 4);
+    expect(noYear.date.month, 5);
+    expect(noYear.date.day, 1);
+    final yearZero = found.firstWhere((item) => item.name == 'Year zero');
+    expect(yearZero.date.year, 4);
+    expect(yearZero.date.month, 4);
+    expect(yearZero.date.day, 4);
     final event = found.first.toEvent(0);
     expect(event.eventType, EventType.birthday);
     expect(event.name, found.first.name);
@@ -111,6 +119,17 @@ void main() {
       originalDate: DateTime.now(),
     );
     expect(service.reminderMessage(bornToday, daysBefore: 0), contains('born today'));
+
+    final yearless = Event(
+      id: 'ny',
+      name: 'Sam',
+      eventType: EventType.birthday,
+      originalDate: DateTime(4, 5, 1),
+    );
+    final yearlessMessage = service.reminderMessage(yearless, daysBefore: 0);
+    expect(yearlessMessage, contains('birthday'));
+    expect(yearlessMessage, isNot(contains('year')));
+    expect(yearlessMessage, isNot(contains('4')));
 
     await service.init();
     expect(await service.notificationAccess(), NotificationAccess.unavailable);

@@ -1,9 +1,9 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../models/custom_event_type.dart';
 import '../services/storage_service.dart';
 import '../utils/icon_picker.dart';
+import '../utils/user_message.dart';
 
 class CustomEventTypeScreen extends StatefulWidget {
   final CustomEventType? customType;
@@ -89,7 +89,7 @@ class _CustomEventTypeScreenState extends State<CustomEventTypeScreen> {
     
     // Editing - check if anything changed
     return _nameController.text.trim() != _initialName ||
-        _primaryColor.value != _initialColor?.value ||
+        _primaryColor.toARGB32() != _initialColor?.toARGB32() ||
         _selectedIconIndex != _initialIconIndex ||
         _turningController.text.trim() != _initialTurningText ||
         _nowController.text.trim() != _initialNowText ||
@@ -155,7 +155,7 @@ class _CustomEventTypeScreenState extends State<CustomEventTypeScreen> {
 
   void _updateBackgroundColor() {
     setState(() {
-      _backgroundColor = _primaryColor.withOpacity(0.15);
+      _backgroundColor = _primaryColor.withValues(alpha: 0.15);
     });
   }
 
@@ -241,8 +241,8 @@ class _CustomEventTypeScreenState extends State<CustomEventTypeScreen> {
       final customType = CustomEventType(
         id: widget.customType?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
         name: _nameController.text.trim(),
-        primaryColorValue: _primaryColor.value,
-        backgroundColorValue: _backgroundColor.value,
+        primaryColorValue: _primaryColor.toARGB32(),
+        backgroundColorValue: _backgroundColor.toARGB32(),
         iconCodePoint: IconPicker.getIcon(_selectedIconIndex).codePoint,
         turningTextTemplate: _turningController.text.trim(),
         nowTextTemplate: _nowController.text.trim(),
@@ -264,10 +264,11 @@ class _CustomEventTypeScreenState extends State<CustomEventTypeScreen> {
       }
       return false;
     } catch (e) {
+      debugPrint('Could not save event type: $e');
       if (mounted) {
         setState(() => _isSaving = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(content: Text(couldNot('save this event type'))),
         );
       }
       return false;
@@ -302,7 +303,7 @@ class _CustomEventTypeScreenState extends State<CustomEventTypeScreen> {
           color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
           ),
         ),
         child: Row(
@@ -310,7 +311,7 @@ class _CustomEventTypeScreenState extends State<CustomEventTypeScreen> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
@@ -334,7 +335,7 @@ class _CustomEventTypeScreenState extends State<CustomEventTypeScreen> {
                   Text(
                     value,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                         ),
                   ),
                 ],
@@ -342,7 +343,7 @@ class _CustomEventTypeScreenState extends State<CustomEventTypeScreen> {
             ),
             Icon(
               Icons.chevron_right_rounded,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
             ),
           ],
         ),
@@ -376,7 +377,7 @@ class _CustomEventTypeScreenState extends State<CustomEventTypeScreen> {
       onPopInvokedWithResult: (didPop, result) async {
         if (!didPop) {
           final shouldPop = await _onWillPop();
-          if (shouldPop && mounted) {
+          if (shouldPop && context.mounted) {
             Navigator.of(context).pop(true);
           }
         }
@@ -387,30 +388,34 @@ class _CustomEventTypeScreenState extends State<CustomEventTypeScreen> {
             icon: const Icon(Icons.close_rounded),
             onPressed: () async {
               final shouldPop = await _onWillPop();
-              if (shouldPop && mounted) {
+              if (shouldPop && context.mounted) {
                 Navigator.pop(context, true);
               }
             },
           ),
-        title: Text(isEditing ? 'Edit Custom Type' : 'New Custom Type'),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: FilledButton(
-              onPressed: _isSaving ? null : () => _saveCustomType(shouldPop: true),
-              child: _isSaving
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Text('Save'),
-            ),
+        toolbarHeight: 48 + MediaQuery.textScalerOf(context).scale(20),
+        title: Text(
+          isEditing ? 'Edit Custom Type' : 'New Custom Type',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: FilledButton(
+            onPressed: _isSaving ? null : () => _saveCustomType(shouldPop: true),
+            child: _isSaving
+                ? SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Theme.of(context).colorScheme.onPrimary,
+                    ),
+                  )
+                : const Text('Save'),
           ),
-        ],
+        ),
       ),
       body: Form(
         key: _formKey,
@@ -471,7 +476,7 @@ class _CustomEventTypeScreenState extends State<CustomEventTypeScreen> {
               decoration: BoxDecoration(
                 color: _backgroundColor,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: _primaryColor.withOpacity(0.3)),
+                border: Border.all(color: _primaryColor.withValues(alpha: 0.3)),
               ),
               child: Row(
                 children: [
@@ -566,8 +571,8 @@ class _IconPickerDialogState extends State<_IconPickerDialog> {
               child: Container(
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? Theme.of(context).colorScheme.primary.withOpacity(0.2)
-                      : Colors.grey.withOpacity(0.1),
+                      ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.2)
+                      : Colors.grey.withValues(alpha: 0.1),
                   border: Border.all(
                     color: isSelected
                         ? Theme.of(context).colorScheme.primary
@@ -662,7 +667,7 @@ class _ColorSelectionDialogState extends State<_ColorSelectionDialog> {
                 children: [
                   ..._colorOptions.map((color) => _ColorChip(
                         color: color,
-                        isSelected: color.value == _selectedColor.value,
+                        isSelected: color.toARGB32() == _selectedColor.toARGB32(),
                         onTap: () => setState(() => _selectedColor = color),
                       )),
                   _ColorChip(
@@ -1130,12 +1135,12 @@ class _ColorPickerState extends State<ColorPicker> {
             color: _getColor(),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: Colors.grey.withOpacity(0.3),
+              color: Colors.grey.withValues(alpha: 0.3),
               width: 2,
             ),
             boxShadow: [
               BoxShadow(
-                color: _getColor().withOpacity(0.3),
+                color: _getColor().withValues(alpha: 0.3),
                 blurRadius: 8,
                 spreadRadius: 2,
               ),
@@ -1145,7 +1150,7 @@ class _ColorPickerState extends State<ColorPicker> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                '#${_getColor().value.toRadixString(16).substring(2).toUpperCase()}',
+                '#${_getColor().toARGB32().toRadixString(16).substring(2).toUpperCase()}',
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 18,
@@ -1271,7 +1276,7 @@ class _ColorWheelPainter extends CustomPainter {
     
     // Add a subtle border to make it clearer
     final centerBorderPaint = Paint()
-      ..color = Colors.grey.withOpacity(0.3)
+      ..color = Colors.grey.withValues(alpha: 0.3)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1
       ..isAntiAlias = true;
@@ -1279,7 +1284,7 @@ class _ColorWheelPainter extends CustomPainter {
     
     // Draw border around wheel
     final borderPaint = Paint()
-      ..color = Colors.grey.withOpacity(0.4)
+      ..color = Colors.grey.withValues(alpha: 0.4)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.5
       ..isAntiAlias = true;
@@ -1294,7 +1299,7 @@ class _ColorWheelPainter extends CustomPainter {
     
     // Outer white ring with shadow
     final shadowPaint = Paint()
-      ..color = Colors.black.withOpacity(0.3)
+      ..color = Colors.black.withValues(alpha: 0.3)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
     canvas.drawCircle(Offset(selectionX + 1, selectionY + 1), 14, shadowPaint);
     
@@ -1377,7 +1382,7 @@ class _MagnificationLoupe extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withValues(alpha: 0.3),
               blurRadius: 8,
               spreadRadius: 2,
             ),
@@ -1403,7 +1408,7 @@ class _CrosshairPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final paint = Paint()
-      ..color = Colors.white.withOpacity(0.8)
+      ..color = Colors.white.withValues(alpha: 0.8)
       ..strokeWidth = 1.5;
     
     // Horizontal line
@@ -1422,7 +1427,7 @@ class _CrosshairPainter extends CustomPainter {
     
     // Center dot
     final dotPaint = Paint()
-      ..color = Colors.black.withOpacity(0.5)
+      ..color = Colors.black.withValues(alpha: 0.5)
       ..style = PaintingStyle.fill;
     canvas.drawCircle(center, 2, dotPaint);
   }

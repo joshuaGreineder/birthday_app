@@ -1,10 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/event.dart';
 import '../models/custom_event_type.dart';
 import '../services/storage_service.dart';
+import '../theme/app_theme.dart';
 import '../utils/event_calculator.dart';
+import '../utils/user_message.dart';
+import '../utils/yearless_date.dart';
 import '../widgets/custom_calendar.dart';
+import '../widgets/screen_status.dart';
 import 'add_edit_event_screen.dart';
 
 class CalendarScreen extends StatefulWidget {
@@ -16,9 +22,11 @@ class CalendarScreen extends StatefulWidget {
 
 class _CalendarScreenState extends State<CalendarScreen> {
   final StorageService _storage = StorageService();
+  StreamSubscription<dynamic>? _eventsSubscription;
   List<Event> _events = [];
   DateTime _selectedDate = DateTime.now();
   bool _isLoading = true;
+  String? _error;
 
   @override
   void initState() {
@@ -31,23 +39,37 @@ class _CalendarScreenState extends State<CalendarScreen> {
       await _storage.init();
       _loadEvents();
       _setupListener();
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _error = null;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
+      debugPrint('Failed to load calendar: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _error = couldNot('load events');
+        });
+      }
     }
   }
 
+  @override
+  void dispose() {
+    _eventsSubscription?.cancel();
+    super.dispose();
+  }
+
   void _setupListener() {
-    _storage.watchEvents().listen((event) {
-      _loadEvents();
+    _eventsSubscription = _storage.watchEvents().listen((event) {
+      if (mounted) _loadEvents();
     });
   }
 
   void _loadEvents() {
+    if (!mounted) return;
     setState(() {
       _events = _storage.getAllEvents();
     });
@@ -118,12 +140,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
+      return Scaffold(body: ScreenStatus.loading());
+    }
+    if (_error != null) {
       return Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(
-            color: Theme.of(context).colorScheme.primary,
-          ),
-        ),
+        body: ScreenStatus.error(title: _error!, onRetry: _initializeAndLoad),
       );
     }
 
@@ -140,7 +161,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
               child: Text(
                 'Calendar',
-                style: Theme.of(context).appBarTheme.titleTextStyle,
+                style: Theme.of(context).textTheme.headlineSmall,
               ),
             ),
             // Calendar widget
@@ -223,14 +244,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                 ),
                                 Text(
                                   '${eventsForDate.length} event${eventsForDate.length != 1 ? 's' : ''}',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.copyWith(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSurface
-                                            .withValues(alpha: 0.5),
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                                       ),
                                 ),
                               ],
@@ -242,33 +257,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     const Divider(height: 1),
                     Expanded(
                       child: eventsForDate.isEmpty
-                          ? Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.event_available_rounded,
-                                    size: 48,
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurface
-                                        .withValues(alpha: 0.2),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    'No events on this date',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyLarge
-                                        ?.copyWith(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurface
-                                              .withValues(alpha: 0.4),
-                                        ),
-                                  ),
-                                ],
-                              ),
+                          ? ScreenStatus.empty(
+                              icon: Icons.event_available_rounded,
+                              title: 'No events on this date',
+                              body: 'Pick another day, or add someone.',
                             )
                           : ListView.builder(
                               padding: const EdgeInsets.symmetric(
@@ -289,6 +281,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: "calendar_fab",
+        tooltip: 'Add event',
         onPressed: _addEvent,
         child: const Icon(Icons.add_rounded),
       ),
@@ -306,17 +299,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
     }
     
     // Colors based on event type (custom type takes precedence)
-    final color = customType != null
-        ? customType.primaryColor
-        : (isBirthday ? const Color(0xFFF59E0B) : const Color(0xFFEC4899));
-    
+    final color = customType?.primaryColor ?? EventPalette.accent(context, birthday: isBirthday);
+    final textColor = customType == null ? color : Theme.of(context).colorScheme.onSurface;
+
     final daysUntil = EventCalculator.getDaysUntil(event);
     final isToday = daysUntil == 0;
+    final knownYear = EventCalculator.hasKnownYear(event);
 
     String milestoneText;
-    
-    // Use custom event type templates if available
-    if (customType != null) {
+
+    if (!knownYear) {
+      milestoneText = customType?.name ?? (isBirthday ? 'Birthday' : 'Anniversary');
+    } else if (customType != null) {
       final years = EventCalculator.getYearsTogether(event);
       final nextYears = years + 1;
       
@@ -385,21 +379,19 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Text(event.name, style: Theme.of(context).textTheme.titleMedium),
                     Text(
-                      event.name,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
+                      event.displayGroup,
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                     Text(
                       milestoneText,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: color,
-                            fontWeight: FontWeight.w500,
-                          ),
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: textColor),
                     ),
+                    if (!knownYear)
+                      Text(formatMonthDay(event.originalDate), style: Theme.of(context).textTheme.bodyMedium),
                   ],
                 ),
               ),

@@ -5,7 +5,10 @@ import '../models/custom_event_type.dart';
 import '../services/storage_service.dart';
 import '../services/notification_service.dart';
 import '../services/widget_service.dart';
+import '../theme/app_space.dart';
+import '../theme/app_theme.dart';
 import '../utils/user_message.dart';
+import '../utils/yearless_date.dart';
 import 'custom_event_type_screen.dart';
 
 class AddEditEventScreen extends StatefulWidget {
@@ -27,6 +30,7 @@ class _AddEditEventScreenState extends State<AddEditEventScreen> {
   EventType _eventType = EventType.birthday;
   String? _selectedCustomTypeId;
   DateTime _selectedDate = DateTime.now();
+  bool _includeYear = true;
   bool _isSaving = false;
   List<CustomEventType> _customTypes = [];
 
@@ -40,7 +44,14 @@ class _AddEditEventScreenState extends State<AddEditEventScreen> {
       _groupController.text = widget.event!.group;
       _eventType = widget.event!.eventType;
       _selectedCustomTypeId = widget.event!.customEventTypeId;
-      _selectedDate = widget.event!.originalDate;
+      final stored = widget.event!.originalDate;
+      if (isYearlessDate(stored)) {
+        _includeYear = false;
+        _selectedDate = DateTime(2000, stored.month, stored.day);
+      } else {
+        _includeYear = true;
+        _selectedDate = stored;
+      }
     }
   }
 
@@ -59,9 +70,12 @@ class _AddEditEventScreenState extends State<AddEditEventScreen> {
   }
 
   Future<void> _selectDate() async {
+    final initial = _selectedDate.year < 1900
+        ? DateTime(2000, _selectedDate.month, _selectedDate.day)
+        : _selectedDate;
     final picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate,
+      initialDate: initial,
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
     );
@@ -80,7 +94,9 @@ class _AddEditEventScreenState extends State<AddEditEventScreen> {
         id: widget.event?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
         name: _nameController.text.trim(),
         eventType: _eventType,
-        originalDate: _selectedDate,
+        originalDate: _includeYear
+            ? DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day)
+            : yearlessDate(_selectedDate.month, _selectedDate.day),
         notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
         customEventTypeId: _selectedCustomTypeId,
         group: _groupController.text.trim(),
@@ -170,25 +186,34 @@ class _AddEditEventScreenState extends State<AddEditEventScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: AppSpace.touch + MediaQuery.textScalerOf(context).scale(20),
         leading: IconButton(
+          tooltip: 'Close',
           icon: const Icon(Icons.close_rounded),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(isEditing ? 'Edit Event' : 'New Event'),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: FilledButton(
-              onPressed: _isSaving ? null : _saveEvent,
-              child: _isSaving
-                  ? const SizedBox(
-                      width: 20, height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                    )
-                  : const Text('Save'),
-            ),
+        title: Text(
+          isEditing ? 'Edit Event' : 'New Event',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpace.md),
+          child: FilledButton(
+            onPressed: _isSaving ? null : _saveEvent,
+            child: _isSaving
+                ? SizedBox(
+                    width: AppSpace.lg,
+                    height: AppSpace.lg,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Theme.of(context).colorScheme.onPrimary,
+                    ),
+                  )
+                : const Text('Save'),
           ),
-        ],
+        ),
       ),
       body: Form(
         key: _formKey,
@@ -197,36 +222,8 @@ class _AddEditEventScreenState extends State<AddEditEventScreen> {
           children: [
             // Event type selector
             _buildLabel('Event Type'),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _TypeCard(
-                    icon: Icons.cake_rounded,
-                    label: 'Birthday',
-                    isSelected: isBirthday && _selectedCustomTypeId == null,
-                    color: const Color(0xFFF59E0B),
-                    onTap: () => setState(() {
-                      _eventType = EventType.birthday;
-                      _selectedCustomTypeId = null;
-                    }),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _TypeCard(
-                    icon: Icons.favorite_rounded,
-                    label: 'Anniversary',
-                    isSelected: !isBirthday && _selectedCustomTypeId == null,
-                    color: const Color(0xFFEC4899),
-                    onTap: () => setState(() {
-                      _eventType = EventType.anniversary;
-                      _selectedCustomTypeId = null;
-                    }),
-                  ),
-                ),
-              ],
-            ),
+            const SizedBox(height: AppSpace.sm),
+            _typeChoices(isBirthday),
             if (_customTypes.isNotEmpty) ...[
               const SizedBox(height: 12),
               Wrap(
@@ -326,16 +323,16 @@ class _AddEditEventScreenState extends State<AddEditEventScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            DateFormat('MMMM d, yyyy').format(_selectedDate),
-                            style: const TextStyle(fontWeight: FontWeight.w500),
+                            _includeYear ? formatFullDate(_selectedDate) : formatMonthDay(_selectedDate),
+                            style: Theme.of(context).textTheme.titleMedium,
                           ),
-                          Text(
-                            DateFormat('EEEE').format(_selectedDate),
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                          if (_includeYear)
+                            Text(
+                              DateFormat('EEEE').format(_selectedDate),
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  ),
                             ),
-                          ),
                         ],
                       ),
                     ),
@@ -344,7 +341,15 @@ class _AddEditEventScreenState extends State<AddEditEventScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpace.sm),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('I know the year'),
+              subtitle: const Text('Turn this off to save only the month and day. Age stays hidden.'),
+              value: _includeYear,
+              onChanged: (value) => setState(() => _includeYear = value),
+            ),
+            const SizedBox(height: AppSpace.lg),
 
             _buildLabel('Group (optional)'),
             const SizedBox(height: 12),
@@ -428,6 +433,46 @@ class _AddEditEventScreenState extends State<AddEditEventScreen> {
     );
   }
 
+  Widget _typeChoices(bool isBirthday) {
+    final birthday = _TypeCard(
+      icon: Icons.cake_rounded,
+      label: 'Birthday',
+      isSelected: isBirthday && _selectedCustomTypeId == null,
+      color: EventPalette.accent(context, birthday: true),
+      onTap: () => setState(() {
+        _eventType = EventType.birthday;
+        _selectedCustomTypeId = null;
+      }),
+    );
+    final anniversary = _TypeCard(
+      icon: Icons.favorite_rounded,
+      label: 'Anniversary',
+      isSelected: !isBirthday && _selectedCustomTypeId == null,
+      color: EventPalette.accent(context, birthday: false),
+      onTap: () => setState(() {
+        _eventType = EventType.anniversary;
+        _selectedCustomTypeId = null;
+      }),
+    );
+    final stacked = MediaQuery.textScalerOf(context).scale(1) > 1.3;
+    if (stacked) {
+      return Column(
+        children: [
+          birthday,
+          const SizedBox(height: AppSpace.sm),
+          anniversary,
+        ],
+      );
+    }
+    return Row(
+      children: [
+        Expanded(child: birthday),
+        const SizedBox(width: AppSpace.sm),
+        Expanded(child: anniversary),
+      ],
+    );
+  }
+
   Widget _buildLabel(String text) {
     return Text(
       text,
@@ -474,10 +519,8 @@ class _TypeCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               label,
-              style: TextStyle(
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected ? color : Theme.of(context).colorScheme.onSurface,
-              ),
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleSmall,
             ),
           ],
         ),

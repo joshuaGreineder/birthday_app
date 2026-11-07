@@ -70,4 +70,21 @@ void main() {
     expect(restored.notes, isNull);
     expect(original.copyWith(group: 'Friends').group, 'Friends');
   });
+
+  test('a yearless date stays in the existing date field', () {
+    final registry = _registry();
+    final original = Event(
+      id: 'month-day',
+      name: 'Sam',
+      eventType: EventType.birthday,
+      originalDate: DateTime(4, 2, 29),
+      group: '',
+    );
+    final writer = BinaryWriterImpl(registry);
+    EventAdapter().write(writer, original);
+    final restored = _read(writer.toBytes(), registry);
+    expect(restored.originalDate, DateTime(4, 2, 29));
+    expect(restored.displayGroup, 'Ungrouped');
+    expect(restored.group, '');
+  });
 }

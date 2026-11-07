@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/backup_codec.dart';
+import '../utils/yearless_date.dart';
 
 /// Returns true only when the user approves writing the preview.
 Future<bool> showBackupPreview(BuildContext context, ImportPreview preview) {
@@ -50,7 +51,9 @@ class _BackupPreviewDialog extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Text('${preview.added.length} new'),
-        ...preview.added.map((row) => Text('• ${row.event.name} (${row.typeLabel})')),
+        ...preview.added.map(
+          (row) => Text('• ${row.event.name} (${row.typeLabel}, ${formatFullDate(row.event.originalDate)})'),
+        ),
         const SizedBox(height: 8),
         Text(
           preview.duplicates.length == 1

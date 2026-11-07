@@ -1,6 +1,10 @@
 import '../models/event.dart';
+import 'yearless_date.dart';
 
 class EventCalculator {
+  /// False when the date is only a month and day. Age and anniversary counts stay hidden.
+  static bool hasKnownYear(Event event) => !isYearlessDate(event.originalDate);
+
   /// Next observance of [event]. February 29 is kept as month 2 day 29 in
   /// storage. In a non-leap year it is observed on February 28, never March 1.
   static DateTime getNextOccurrence(Event event, {DateTime? now}) {
@@ -46,7 +50,7 @@ class EventCalculator {
   /// Returns null once the person has reached that first birthday, including
   /// on the day itself, so a first birthday is not described as 12 months.
   static Map<String, int>? getBabyAge(Event event, {DateTime? now}) {
-    if (event.eventType != EventType.birthday) return null;
+    if (!hasKnownYear(event) || event.eventType != EventType.birthday) return null;
 
     final today = _dateOnly(now ?? DateTime.now());
     final birth = _dateOnly(event.originalDate);
@@ -83,12 +87,14 @@ class EventCalculator {
   /// On the birthday this is one less than the age they are turning, which
   /// callers add back for "Now N years old".
   static int getAge(Event event, {DateTime? now}) {
-    if (event.eventType != EventType.birthday) return 0;
+    if (!hasKnownYear(event) || event.eventType != EventType.birthday) return 0;
     return _yearsBeforeObservance(event.originalDate, now ?? DateTime.now());
   }
 
   /// Completed years before today's observance for anniversaries and custom events.
+  /// Yearless dates return 0 and must not be shown as an anniversary count.
   static int getYearsTogether(Event event, {DateTime? now}) {
+    if (!hasKnownYear(event)) return 0;
     if (event.eventType == EventType.birthday) {
       return getAge(event, now: now);
     }
@@ -137,6 +143,9 @@ class EventCalculator {
   }
 
   static String getAgeText(Event event, {DateTime? now}) {
+    if (!hasKnownYear(event)) {
+      return event.eventType == EventType.birthday ? 'Birthday' : 'Anniversary';
+    }
     final clock = now ?? DateTime.now();
     if (event.eventType == EventType.birthday) {
       final age = getAge(event, now: clock);
