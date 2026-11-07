@@ -1,4 +1,6 @@
 import 'package:birthday_app/main.dart';
+import 'package:birthday_app/models/event.dart';
+import 'package:birthday_app/screens/add_edit_event_screen.dart';
 import 'package:birthday_app/screens/calendar_screen.dart';
 import 'package:birthday_app/screens/home_screen.dart';
 import 'package:birthday_app/screens/settings_screen.dart';
@@ -21,6 +23,7 @@ Future<void> _openStorage() async {
   await StorageService.resetForTest();
   await StorageService().init(memory: true);
   await StorageService().saveSetting('notificationsEnabled', false);
+  await StorageService().saveSetting('onboardingComplete', true);
 }
 
 Future<void> _pumpPastLoading(WidgetTester tester) async {
@@ -154,6 +157,72 @@ void main() {
     expect(find.text('Settings'), findsOneWidget);
     await tester.scrollUntilVisible(find.text('Privacy policy'), 400);
     expect(find.text('Privacy policy'), findsOneWidget);
+  });
+
+  testWidgets('onboarding is skippable and shows once', (tester) async {
+    await StorageService().saveSetting('onboardingComplete', false);
+    await tester.pumpWidget(const HapparooApp());
+    await _pumpPastLoading(tester);
+    expect(find.text('Skip'), findsOneWidget);
+    expect(find.text('Never miss a day'), findsOneWidget);
+    await tester.tap(find.text('Skip'));
+    await _pumpPastLoading(tester);
+    expect(find.text('No events yet'), findsOneWidget);
+    expect(StorageService().isOnboardingComplete(), isTrue);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpWidget(const HapparooApp());
+    await _pumpPastLoading(tester);
+    expect(find.text('Skip'), findsNothing);
+    expect(find.text('No events yet'), findsOneWidget);
+  });
+
+  testWidgets('home filters by group and treats a blank group as Ungrouped', (tester) async {
+    tester.view.physicalSize = const Size(800, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+
+    await StorageService().addEvent(Event(
+      id: 'ada',
+      name: 'Ada Lovelace',
+      eventType: EventType.birthday,
+      originalDate: DateTime(1990, 12, 10),
+      group: 'Family',
+    ));
+    await StorageService().addEvent(Event(
+      id: 'neighbor',
+      name: 'Neighbor',
+      eventType: EventType.anniversary,
+      originalDate: DateTime(4, 1, 2),
+      group: '  ',
+    ));
+
+    await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+    await _pumpPastLoading(tester);
+    expect(find.text('Family'), findsWidgets);
+    expect(find.text('Ungrouped'), findsWidgets);
+    expect(find.text('Neighbor'), findsOneWidget);
+    expect(find.text('Anniversary'), findsWidgets);
+    expect(find.textContaining('Born 4'), findsNothing);
+    expect(find.textContaining('Since 4'), findsNothing);
+
+    await tester.tap(find.widgetWithText(FilterChip, 'Ungrouped'));
+    await tester.pump();
+    expect(find.text('Neighbor'), findsOneWidget);
+    expect(find.text('Ada Lovelace'), findsNothing);
+  });
+
+  testWidgets('add screen can save a month and day without a year', (tester) async {
+    tester.view.physicalSize = const Size(800, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+
+    await tester.pumpWidget(const MaterialApp(home: AddEditEventScreen()));
+    await tester.pump();
+    await tester.tap(find.text('I know the year'));
+    await tester.pump();
+    expect(find.textContaining('${DateTime.now().year}'), findsNothing);
+    expect(find.textContaining(', 4'), findsNothing);
   });
 }
 

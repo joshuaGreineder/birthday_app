@@ -35,6 +35,14 @@ class IconPicker {
     Icons.favorite_border_rounded,
   ];
 
+  /// Match a stored code point to a const icon. Unknown points use the star.
+  static IconData iconForCodePoint(int codePoint) {
+    for (final icon in availableIcons) {
+      if (icon.codePoint == codePoint) return icon;
+    }
+    return Icons.star_rounded;
+  }
+
   /// Get icon by index
   static IconData getIcon(int index) {
     if (index >= 0 && index < availableIcons.length) {

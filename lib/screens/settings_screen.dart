@@ -11,6 +11,7 @@ import '../services/backup_transfer.dart';
 import '../utils/user_message.dart';
 import '../widgets/backup_preview_dialog.dart';
 import '../widgets/import_birthdays_dialog.dart';
+import '../theme/app_space.dart';
 import '../widgets/permission_prompts.dart';
 import '../models/event.dart' as event_model;
 import 'custom_event_type_screen.dart';
@@ -62,6 +63,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (mounted) {
       setState(() => _notificationAccess = access);
     }
+  }
+
+  Widget _themeChip(String value, String label) {
+    final selected = _themeMode == value;
+    final scheme = Theme.of(context).colorScheme;
+    return FilterChip(
+      label: Text(label),
+      selected: selected,
+      showCheckmark: false,
+      selectedColor: scheme.secondaryContainer,
+      labelStyle: TextStyle(
+        color: selected ? scheme.onSecondaryContainer : scheme.onSurface,
+      ),
+      onSelected: (_) {
+        setState(() => _themeMode = value);
+        _storage.saveSetting('themeMode', value);
+        final mode = value == 'light'
+            ? ThemeMode.light
+            : value == 'dark'
+                ? ThemeMode.dark
+                : ThemeMode.system;
+        widget.onThemeModeChanged?.call(mode);
+      },
+    );
   }
 
   void _loadSettings() {
@@ -238,9 +263,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label),
+          Expanded(child: Text(label)),
+          const SizedBox(width: 8),
           Icon(
             value ? Icons.check_circle : Icons.cancel,
             color: value ? Colors.green : Colors.red,
@@ -382,21 +407,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           physics: const BouncingScrollPhysics(),
           slivers: [
             SliverAppBar(
-              expandedHeight: 80,
-              floating: false,
               pinned: true,
               backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-              flexibleSpace: FlexibleSpaceBar(
-                titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
-                title: Text(
-                  'Settings',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-              ),
+              toolbarHeight: AppSpace.touch + MediaQuery.textScalerOf(context).scale(24),
+              title: Text('Settings', style: Theme.of(context).textTheme.headlineSmall),
             ),
             SliverPadding(
               padding: const EdgeInsets.all(16),
@@ -406,92 +420,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   _buildSectionHeader('Appearance', Icons.palette_rounded),
                   const SizedBox(height: 12),
                   _buildCard(
-                    child: Column(
-                      children: [
-                        ListTile(
-                          leading: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Icon(
-                              _themeMode == 'dark' 
-                                  ? Icons.dark_mode_rounded
-                                  : _themeMode == 'light'
-                                      ? Icons.light_mode_rounded
-                                      : Icons.brightness_auto_rounded,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSpace.md),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Theme', style: Theme.of(context).textTheme.titleMedium),
+                          const SizedBox(height: AppSpace.xxs),
+                          Text(
+                            'Light, dark, or follow the device.',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                ),
                           ),
-                          title: const Text('Theme'),
-                          subtitle: Text(
-                            _themeMode == 'dark' 
-                                ? 'Dark mode'
-                                : _themeMode == 'light'
-                                    ? 'Light mode'
-                                    : 'Follow system',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                            ),
-                          ),
-                          trailing: DropdownButton<String>(
-                            value: _themeMode,
-                            underline: const SizedBox(),
-                            items: const [
-                              DropdownMenuItem(
-                                value: 'system',
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(Icons.brightness_auto_rounded, size: 18),
-                                    SizedBox(width: 8),
-                                    Text('System'),
-                                  ],
-                                ),
-                              ),
-                              DropdownMenuItem(
-                                value: 'light',
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(Icons.light_mode_rounded, size: 18),
-                                    SizedBox(width: 8),
-                                    Text('Light'),
-                                  ],
-                                ),
-                              ),
-                              DropdownMenuItem(
-                                value: 'dark',
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(Icons.dark_mode_rounded, size: 18),
-                                    SizedBox(width: 8),
-                                    Text('Dark'),
-                                  ],
-                                ),
-                              ),
+                          const SizedBox(height: AppSpace.sm),
+                          Wrap(
+                            spacing: AppSpace.xs,
+                            runSpacing: AppSpace.xs,
+                            children: [
+                              _themeChip('system', 'System'),
+                              _themeChip('light', 'Light'),
+                              _themeChip('dark', 'Dark'),
                             ],
-                            onChanged: (value) {
-                              if (value != null) {
-                                setState(() {
-                                  _themeMode = value;
-                                });
-                                _storage.saveSetting('themeMode', value);
-                                if (widget.onThemeModeChanged != null) {
-                                  final mode = value == 'light'
-                                      ? ThemeMode.light
-                                      : value == 'dark'
-                                          ? ThemeMode.dark
-                                          : ThemeMode.system;
-                                  widget.onThemeModeChanged!(mode);
-                                }
-                              }
-                            },
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -545,11 +498,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               dense: true,
                               title: Text(
                                 'Remind Me',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                                ),
+                                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    ),
                               ),
                             ),
                           ),
@@ -562,41 +513,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             return Column(
                               children: [
                                 ListTile(
-                                  dense: true,
-                                  leading: AnimatedContainer(
-                                    duration: const Duration(milliseconds: 200),
-                                    width: 28,
-                                    height: 28,
-                                    decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? Theme.of(context).colorScheme.primary
-                                          : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: Icon(
-                                      isSelected ? Icons.check_rounded : option['icon'],
-                                      size: 16,
-                                      color: isSelected 
-                                          ? Colors.white 
-                                          : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
-                                    ),
+                                  leading: Icon(
+                                    isSelected ? Icons.check_rounded : option['icon'] as IconData,
+                                    color: isSelected
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Theme.of(context).colorScheme.onSurfaceVariant,
                                   ),
                                   title: Text(
                                     option['label'],
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                                      color: isSelected 
-                                          ? Theme.of(context).colorScheme.primary 
-                                          : null,
-                                    ),
+                                    style: Theme.of(context).textTheme.titleSmall,
                                   ),
                                   onTap: () => _toggleDay(option['value']),
                                 ),
                                 if (!isLast) const Divider(height: 1, indent: 56),
                               ],
                             );
-                          }).toList(),
+                          }),
                           const Divider(height: 1, indent: 16),
                           ListTile(
                             leading: Container(
@@ -623,7 +555,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 await _saveSettings();
                                 
                                 // Schedule a test notification for 1 minute from now to verify it works
-                                if (mounted) {
+                                if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content: Text('Notification time saved.'),
@@ -982,16 +914,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           Icon(
             icon,
-            size: 18,
             color: Theme.of(context).colorScheme.primary,
           ),
           const SizedBox(width: 8),
-          Text(
-            title,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: Theme.of(context).colorScheme.primary,
-              letterSpacing: 0.5,
+          Expanded(
+            child: Text(
+              title,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
             ),
           ),
         ],
@@ -1108,7 +1039,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'All ${duplicateCount} birthday${duplicateCount != 1 ? 's' : ''} are already imported',
+                'All $duplicateCount birthday${duplicateCount != 1 ? 's' : ''} are already imported',
               ),
               behavior: SnackBarBehavior.floating,
             ),

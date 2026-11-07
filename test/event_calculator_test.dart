@@ -1,5 +1,6 @@
 import 'package:birthday_app/models/event.dart';
 import 'package:birthday_app/utils/event_calculator.dart';
+import 'package:birthday_app/utils/yearless_date.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
@@ -169,6 +170,33 @@ void main() {
     );
     expect(ordered.map((event) => event.name), ['Sooner', 'Later']);
     expect(EventCalculator.getYearsTogether(sooner, now: DateTime(2026, 11, 7)), 35);
+  });
+
+  test('a month and day with no year hides age and anniversary counts', () {
+    final birthdayOnly = birthday('Sam', yearlessDate(3, 14));
+    final anniversaryOnly = anniversary('Us', yearlessDate(2, 29));
+    final today = DateTime(2026, 3, 14);
+
+    expect(EventCalculator.hasKnownYear(birthdayOnly), isFalse);
+    expect(birthdayOnly.originalDate.year, 4);
+    expect(formatFullDate(birthdayOnly.originalDate), 'March 14');
+    expect(formatFullDate(birthdayOnly.originalDate), isNot(contains('0004')));
+    expect(formatFullDate(birthdayOnly.originalDate), isNot(contains(', 4')));
+
+    final birthdayText = EventCalculator.getAgeText(birthdayOnly, now: today);
+    expect(birthdayText, 'Birthday');
+    expect(birthdayText, isNot(contains(RegExp(r'\d'))));
+    expect(EventCalculator.getAge(birthdayOnly, now: today), 0);
+    expect(EventCalculator.getBabyAge(birthdayOnly, now: today), isNull);
+
+    final anniversaryText = EventCalculator.getAgeText(anniversaryOnly, now: DateTime(2025, 2, 28));
+    expect(anniversaryText, 'Anniversary');
+    expect(anniversaryText, isNot(contains(RegExp(r'\d'))));
+    expect(EventCalculator.getYearsTogether(anniversaryOnly, now: today), 0);
+    expect(
+      EventCalculator.getNextOccurrence(anniversaryOnly, now: DateTime(2025, 1, 1)),
+      DateTime(2025, 2, 28),
+    );
   });
 
   test('a baby birthday that crosses a month boundary counts calendar days', () {

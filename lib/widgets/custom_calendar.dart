@@ -121,7 +121,7 @@ class _CustomCalendarState extends State<CustomCalendar> {
       final bgColor = customTypes.first.backgroundColor;
       // For dark mode, make it slightly more visible, but keep it light
       return isDark 
-          ? bgColor.withValues(alpha: bgColor.opacity * 0.6)
+          ? bgColor.withValues(alpha: bgColor.a * 0.6)
           : bgColor;
     }
     
@@ -144,52 +144,44 @@ class _CustomCalendarState extends State<CustomCalendar> {
     final weekDays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Column(
+    final scheme = Theme.of(context).colorScheme;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(8),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Column(
         children: [
-          // Month header with navigation
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+              color: scheme.surfaceContainerLow,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 IconButton(
-                  icon: Icon(
-                    Icons.chevron_left_rounded,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
+                  tooltip: 'Previous month',
+                  icon: Icon(Icons.chevron_left_rounded, color: scheme.onSurface),
                   onPressed: _previousMonth,
-                  style: IconButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.surface,
-                  ),
                 ),
-                Text(
-                  monthName,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
+                Expanded(
+                  child: Text(
+                    monthName,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                 ),
                 IconButton(
-                  icon: Icon(
-                    Icons.chevron_right_rounded,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
+                  tooltip: 'Next month',
+                  icon: Icon(Icons.chevron_right_rounded, color: scheme.onSurface),
                   onPressed: _nextMonth,
-                  style: IconButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.surface,
-                  ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 20),
-          // Week day headers
+          const SizedBox(height: 12),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Row(
@@ -198,12 +190,8 @@ class _CustomCalendarState extends State<CustomCalendar> {
                   child: Center(
                     child: Text(
                       day,
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withValues(alpha: 0.5),
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                            color: scheme.onSurfaceVariant,
                           ),
                     ),
                   ),
@@ -211,16 +199,15 @@ class _CustomCalendarState extends State<CustomCalendar> {
               }).toList(),
             ),
           ),
-          const SizedBox(height: 12),
-          // Calendar grid
-          Expanded(
-            child: GridView.builder(
+          const SizedBox(height: 8),
+          GridView.builder(
+              shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 7,
                 childAspectRatio: 1,
-                mainAxisSpacing: 4,
-                crossAxisSpacing: 4,
+                mainAxisSpacing: 2,
+                crossAxisSpacing: 2,
               ),
               itemCount: days.length,
               itemBuilder: (context, index) {
@@ -273,13 +260,10 @@ class _CustomCalendarState extends State<CustomCalendar> {
                             '${date.day}',
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                   color: isSelected
-                                      ? Colors.white
+                                      ? Theme.of(context).colorScheme.onPrimary
                                       : isCurrentMonth
                                           ? Theme.of(context).colorScheme.onSurface
-                                          : Theme.of(context)
-                                              .colorScheme
-                                              .onSurface
-                                              .withValues(alpha: 0.3),
+                                          : Theme.of(context).colorScheme.onSurfaceVariant,
                                   fontWeight: isToday || isSelected || hasEvents
                                       ? FontWeight.w700
                                       : FontWeight.w500,
@@ -333,9 +317,11 @@ class _CustomCalendarState extends State<CustomCalendar> {
                 );
               },
             ),
-          ),
         ],
-      ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
