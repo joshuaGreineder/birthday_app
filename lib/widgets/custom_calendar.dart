@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/event.dart';
+import '../utils/event_calculator.dart';
 import '../models/custom_event_type.dart';
 import '../services/storage_service.dart';
 
@@ -67,10 +68,7 @@ class _CustomCalendarState extends State<CustomCalendar> {
   }
 
   List<Event> _getEventsForDate(DateTime date) {
-    return widget.events.where((event) {
-      final original = event.originalDate;
-      return original.month == date.month && original.day == date.day;
-    }).toList();
+    return EventCalculator.getEventsForDate(widget.events, date);
   }
 
   bool _isToday(DateTime date) {

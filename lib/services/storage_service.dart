@@ -13,6 +13,7 @@ class StorageService {
   static Box<dynamic>? _settingsBox;
   static Box<CustomEventType>? _customEventTypesBox;
   static bool _initialized = false;
+  static Future<void>? _initFuture;
 
   factory StorageService() {
     _instance ??= StorageService._internal();
@@ -21,32 +22,62 @@ class StorageService {
 
   StorageService._internal();
 
-  Future<void> init() async {
+  /// [directory] is a disk path for tests. The app leaves it null and uses Hive's
+  /// Flutter path. [memory] opens empty in-memory boxes so a widget test is not
+  /// blocked on disk I/O.
+  Future<void> init({String? directory, bool memory = false}) async {
     if (_initialized) return;
-
+    _initFuture ??= _open(directory, memory);
     try {
-      await Hive.initFlutter();
-
-      if (!Hive.isAdapterRegistered(0)) {
-        Hive.registerAdapter(EventAdapter());
-      }
-      if (!Hive.isAdapterRegistered(1)) {
-        Hive.registerAdapter(EventTypeAdapter());
-      }
-      if (!Hive.isAdapterRegistered(2)) {
-        Hive.registerAdapter(CustomEventTypeAdapter());
-      }
-
-      _eventsBox = await Hive.openBox<Event>(_eventsBoxName);
-      _settingsBox = await Hive.openBox<dynamic>(_settingsBoxName);
-      _customEventTypesBox = await Hive.openBox<CustomEventType>(_customEventTypesBoxName);
-
-      _initialized = true;
-      debugPrint('Storage initialized successfully');
+      await _initFuture;
     } catch (e) {
+      _initFuture = null;
       debugPrint('Storage initialization error: $e');
       rethrow;
     }
+  }
+
+  Future<void> _open(String? directory, bool memory) async {
+    if (!memory) {
+      if (directory != null) {
+        Hive.init(directory);
+      } else {
+        await Hive.initFlutter();
+      }
+    }
+
+    Uint8List? emptyBytes() => memory ? Uint8List(0) : null;
+
+    if (!Hive.isAdapterRegistered(0)) {
+      Hive.registerAdapter(EventAdapter());
+    }
+    if (!Hive.isAdapterRegistered(1)) {
+      Hive.registerAdapter(EventTypeAdapter());
+    }
+    if (!Hive.isAdapterRegistered(2)) {
+      Hive.registerAdapter(CustomEventTypeAdapter());
+    }
+
+    _eventsBox = await Hive.openBox<Event>(_eventsBoxName, bytes: emptyBytes());
+    _settingsBox = await Hive.openBox<dynamic>(_settingsBoxName, bytes: emptyBytes());
+    _customEventTypesBox =
+        await Hive.openBox<CustomEventType>(_customEventTypesBoxName, bytes: emptyBytes());
+    _initialized = true;
+    debugPrint('Storage initialized successfully');
+  }
+
+  /// Closes boxes so a test can open a fresh directory. Not used by the app.
+  static Future<void> resetForTest() async {
+    await _eventsBox?.close();
+    await _settingsBox?.close();
+    await _customEventTypesBox?.close();
+    _eventsBox = null;
+    _settingsBox = null;
+    _customEventTypesBox = null;
+    _initialized = false;
+    _initFuture = null;
+    _instance = null;
+    await Hive.close();
   }
 
   // Event operations
@@ -152,5 +183,39 @@ class StorageService {
 
   Future<void> setTimeRange(int timeRange) async {
     await saveSetting('timeRange', timeRange);
+  }
+
+  Map<String, dynamic> exportSettings() {
+    final box = _settingsBox;
+    if (box == null) return {};
+    final exported = <String, dynamic>{};
+    for (final key in box.keys) {
+      final value = box.get(key);
+      if (_isJsonValue(value)) {
+        exported[key.toString()] = value;
+      }
+    }
+    return exported;
+  }
+
+  Future<void> importSettings(Map<String, dynamic> settings) async {
+    for (final entry in settings.entries) {
+      if (_isJsonValue(entry.value)) {
+        await saveSetting(entry.key, entry.value);
+      }
+    }
+  }
+
+  bool _isJsonValue(Object? value) {
+    if (value == null || value is bool || value is int || value is double || value is String) {
+      return true;
+    }
+    if (value is List) {
+      return value.every(_isJsonValue);
+    }
+    if (value is Map) {
+      return value.values.every(_isJsonValue);
+    }
+    return false;
   }
 }

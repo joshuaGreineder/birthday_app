@@ -6,6 +6,10 @@ import '../services/storage_service.dart';
 import '../services/notification_service.dart';
 import '../services/contact_parser_service.dart';
 import '../services/link_service.dart';
+import '../services/backup_codec.dart';
+import '../services/backup_transfer.dart';
+import '../utils/user_message.dart';
+import '../widgets/backup_preview_dialog.dart';
 import '../widgets/import_birthdays_dialog.dart';
 import '../widgets/permission_prompts.dart';
 import '../models/event.dart' as event_model;
@@ -24,6 +28,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final StorageService _storage = StorageService();
   final NotificationService _notificationService = NotificationService();
   final ContactParserService _contactParserService = ContactParserService();
+  final BackupCodec _backup = const BackupCodec();
+  final BackupTransfer _transfer = const BackupTransfer();
   bool _notificationsEnabled = true;
   NotificationAccess _notificationAccess = NotificationAccess.unavailable;
   List<int> _selectedDays = [0, 1, 7];
@@ -298,6 +304,72 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
       }
     }
+  }
+
+  Future<void> _exportJson() async {
+    try {
+      final contents = _backup.exportJson(
+        events: _storage.getAllEvents(),
+        customTypes: _storage.getAllCustomEventTypes(),
+        settings: _storage.exportSettings(),
+      );
+      await _transfer.share(
+        filename: 'happaroo-backup.json',
+        contents: contents,
+        mimeType: 'application/json',
+      );
+    } catch (e) {
+      debugPrint('JSON export failed: $e');
+      _showBackupMessage(couldNot('share the JSON backup'));
+    }
+  }
+
+  Future<void> _exportCsv() async {
+    try {
+      final contents = _backup.exportCsv(
+        events: _storage.getAllEvents(),
+        customTypes: _storage.getAllCustomEventTypes(),
+      );
+      await _transfer.share(
+        filename: 'happaroo-events.csv',
+        contents: contents,
+        mimeType: 'text/csv',
+      );
+    } catch (e) {
+      debugPrint('CSV export failed: $e');
+      _showBackupMessage(couldNot('share the CSV backup'));
+    }
+  }
+
+  Future<void> _importBackup() async {
+    try {
+      final picked = await _transfer.pick();
+      if (picked == null || !mounted) return;
+      final preview = _backup.preview(
+        fileName: picked.name,
+        contents: picked.contents,
+        existingEvents: _storage.getAllEvents(),
+        existingTypes: _storage.getAllCustomEventTypes(),
+      );
+      if (!mounted) return;
+      final approved = await showBackupPreview(context, preview);
+      if (!approved || !mounted) return;
+      await _backup.apply(_storage, preview);
+      if (!mounted) return;
+      setState(() {});
+      final added = preview.added.length;
+      _showBackupMessage(
+        added == 0 ? 'Import finished. No new events were added.' : 'Imported $added event${added == 1 ? '' : 's'}.',
+      );
+    } catch (e) {
+      debugPrint('Import failed: $e');
+      _showBackupMessage(couldNot('import that file'));
+    }
+  }
+
+  void _showBackupMessage(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -757,6 +829,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ),
                             ),
                           ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  _buildSectionHeader('Backup', Icons.ios_share_rounded),
+                  const SizedBox(height: 12),
+                  _buildCard(
+                    child: Column(
+                      children: [
+                        ListTile(
+                          leading: const Icon(Icons.data_object_rounded),
+                          title: const Text('Export JSON'),
+                          subtitle: const Text('Events, custom types, and settings'),
+                          onTap: _exportJson,
+                        ),
+                        const Divider(height: 1, indent: 56),
+                        ListTile(
+                          leading: const Icon(Icons.table_chart_outlined),
+                          title: const Text('Export CSV'),
+                          subtitle: const Text('Events only'),
+                          onTap: _exportCsv,
+                        ),
+                        const Divider(height: 1, indent: 56),
+                        const ListTile(
+                          leading: Icon(Icons.info_outline_rounded),
+                          title: Text('Import adds events'),
+                          subtitle: Text(
+                            'Nothing is removed if it is missing from the file. You review the file before anything is saved.',
+                          ),
+                        ),
+                        const Divider(height: 1, indent: 56),
+                        ListTile(
+                          leading: const Icon(Icons.file_open_outlined),
+                          title: const Text('Import JSON or CSV'),
+                          subtitle: const Text('Choose a file, then approve the preview'),
+                          onTap: _importBackup,
+                        ),
                       ],
                     ),
                   ),

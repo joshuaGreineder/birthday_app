@@ -113,7 +113,10 @@ class NotificationService {
   }
 
   String _timezoneFromOffset() {
-    final offsetHours = DateTime.now().timeZoneOffset.inHours;
+    return timezoneForOffsetHours(DateTime.now().timeZoneOffset.inHours);
+  }
+
+  String timezoneForOffsetHours(int offsetHours) {
     switch (offsetHours) {
       case -5:
         return 'America/New_York';
@@ -342,6 +345,12 @@ class NotificationService {
         return '${number}th';
     }
   }
+
+  String reminderMessage(Event event, {required int daysBefore}) {
+    return _formatNotificationMessage(event, daysBefore: daysBefore);
+  }
+
+  NotificationAccess accessFor(PermissionStatus status) => _accessFromStatus(status);
 
   void _onNotificationTapped(NotificationResponse response) {
     debugPrint('Notification tapped: id=${response.id}');

@@ -23,13 +23,15 @@ class EventAdapter extends TypeAdapter<Event> {
       originalDate: fields[3] as DateTime,
       notes: fields[4] as String?,
       customEventTypeId: fields[5] as String?,
+      // Missing on installs saved before Group existed.
+      group: fields[6] as String? ?? '',
     );
   }
 
   @override
   void write(BinaryWriter writer, Event obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -41,7 +43,9 @@ class EventAdapter extends TypeAdapter<Event> {
       ..writeByte(4)
       ..write(obj.notes)
       ..writeByte(5)
-      ..write(obj.customEventTypeId);
+      ..write(obj.customEventTypeId)
+      ..writeByte(6)
+      ..write(obj.group);
   }
 
   @override
