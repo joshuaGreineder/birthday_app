@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Event Tracker</string>
+    <string name="app_name">Happaroo</string>
     <string name="widget_single_event_description">Shows your next upcoming event</string>
     <string name="widget_three_events_description">Shows your next three upcoming events</string>
 </resources>

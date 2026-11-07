@@ -443,13 +443,13 @@ No analyzer issues and no test failures were reproduced, because the SDK is miss
 
 ## Questions that block Phase 2
 
-These were left as placeholders. They are still empty on purpose.
+Answered for Phase 2. Use these values. Do not invent different ones.
 
-1. App name: `{app_name}`
-2. Package / bundle ID: `{package_id}`
-3. Privacy policy URL: `{privacy_policy_url}`
-4. `include_ios`: yes or no
-5. `calendar_sync` in v1: yes or no
-6. `coverage_target` percent for `lib/utils` and `lib/services`
+1. App name: Happaroo. The launcher label is Happaroo. The Play store title, for later listing copy and not the launcher label, is "Happaroo: Birthday Reminder".
+2. Package / bundle ID: com.greinederlabs.happaroo
+3. Privacy policy URL: https://happaroo.com/privacy
+4. `include_ios`: no
+5. `calendar_sync` in v1: no. Hide it behind a feature flag that defaults to false. Do not delete the calendar code or the `google_sign_in` / `googleapis` dependencies.
+6. `coverage_target`: 90% for `lib/utils`, 60% for `lib/services`. That target is Phase 3. Do not write those tests in Phase 2.
 
-Until those are answered, do not rename the application id, do not add or remove packages, do not delete the calendar code or the iOS tree, and do not change Hive fields. Later phases should be separate PRs. Suggested order once the answers exist: signing and application id, privacy policy link, permission-manifest trim (H5), notification correctness (H4), date math with tests (H1–H3), then contacts (H7) and whichever of iOS or calendar the answers keep.
+Do not add a dependency, remove a feature, or change the Hive model without asking. Later phases should be separate PRs. Suggested order after these answers: signing and application id, privacy policy link, permission-manifest trim (H5), notification correctness (H4), date math with tests (H1–H3), then contacts (H7). iOS is out. Calendar sync stays in the tree and stays off.

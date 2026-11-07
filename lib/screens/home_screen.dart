@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import '../app_config.dart';
 import '../models/event.dart';
 import '../models/custom_event_type.dart';
+import '../services/notification_service.dart';
 import '../services/storage_service.dart';
 import '../services/widget_service.dart';
+import '../widgets/permission_prompts.dart';
 import '../utils/event_calculator.dart';
 import '../widgets/event_card.dart';
 import 'add_edit_event_screen.dart';
@@ -21,6 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Event> _upcomingEvents = [];
   List<Event> _filteredEvents = [];
   bool _isLoading = true;
+  bool _remindersBlocked = false;
   String? _error;
   String _filterType = 'all'; // all, birthday, anniversary, or custom event type ID
   int _timeRange = 365; // days: 7, 30, 90, 180, 365 (all)
@@ -48,6 +52,33 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  Future<void> _refreshReminderAccess() async {
+    if (kIsWeb) return;
+    try {
+      final enabled = _storage.getNotificationsEnabled();
+      final access = await NotificationService().notificationAccess();
+      final blocked = enabled &&
+          access != NotificationAccess.granted &&
+          access != NotificationAccess.unavailable;
+      if (mounted) setState(() => _remindersBlocked = blocked);
+    } catch (e) {
+      debugPrint('Reminder access check failed: $e');
+    }
+  }
+
+  Future<void> _allowReminders() async {
+    final result = await requestNotificationsWithExplanation(context);
+    if (!mounted) return;
+    if (result == PermissionPromptResult.granted) {
+      await _storage.saveSetting('notificationsEnabled', true);
+      await NotificationService().scheduleDailyNotifications();
+    } else if (result == PermissionPromptResult.dismissed) {
+      await _storage.saveSetting('notificationsEnabled', false);
+      await NotificationService().cancelAllNotifications();
+    }
+    await _refreshReminderAccess();
+  }
+
   Future<void> _initializeAndLoad() async {
     try {
       // Storage init is idempotent (checks if already initialized)
@@ -62,6 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
       
       await _loadEvents();
       _setupListener();
+      await _refreshReminderAccess();
       if (mounted) setState(() => _isLoading = false);
     } catch (e) {
       if (mounted) {
@@ -211,7 +243,7 @@ class _HomeScreenState extends State<HomeScreen> {
             flexibleSpace: FlexibleSpaceBar(
               titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
               title: _showSearch ? null : Text(
-                'Event Tracker',
+                kAppDisplayName,
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
@@ -254,6 +286,37 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(width: 8),
             ],
           ),
+          if (_remindersBlocked)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                child: Material(
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Reminders will not fire until notifications are allowed.',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: _allowReminders,
+                            child: const Text('Allow notifications'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
           if (_upcomingEvents.isEmpty)
             SliverFillRemaining(child: _buildEmptyState())
           else ...[

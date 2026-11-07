@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../app_config.dart';
 import '../models/event.dart';
 import '../utils/event_calculator.dart';
 import 'storage_service.dart';
@@ -42,7 +43,7 @@ class WidgetService {
       // Use a separate SharedPreferences file that widgets can access
       // Create widget_prefs SharedPreferences using method channel
       try {
-        const platform = MethodChannel('com.example.birthday_app/widget');
+        const platform = MethodChannel(kWidgetChannel);
         
         if (nextEvent != null) {
           final daysUntil = EventCalculator.getDaysUntil(nextEvent);

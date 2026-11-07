@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:permission_handler/permission_handler.dart';
+import '../app_config.dart';
 import '../services/storage_service.dart';
 import '../services/notification_service.dart';
 import '../services/contact_parser_service.dart';
+import '../services/link_service.dart';
 import '../widgets/import_birthdays_dialog.dart';
+import '../widgets/permission_prompts.dart';
 import '../models/event.dart' as event_model;
 import 'custom_event_type_screen.dart';
 
@@ -21,6 +25,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final NotificationService _notificationService = NotificationService();
   final ContactParserService _contactParserService = ContactParserService();
   bool _notificationsEnabled = true;
+  NotificationAccess _notificationAccess = NotificationAccess.unavailable;
   List<int> _selectedDays = [0, 1, 7];
   int _notificationHour = 8;
   int _notificationMinute = 0;
@@ -45,8 +50,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _initAndLoadSettings() async {
     // Ensure storage is initialized before loading settings
     await _storage.init();
+    if (!mounted) return;
+    _loadSettings();
+    final access = await _notificationService.notificationAccess();
     if (mounted) {
-      _loadSettings();
+      setState(() => _notificationAccess = access);
     }
   }
 
@@ -67,34 +75,66 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await _storage.saveSetting('notificationDays', _selectedDays);
     await _storage.setNotificationTime(_notificationHour, _notificationMinute);
     debugPrint('Settings saved successfully');
-    
-    // Handle notification permissions and scheduling
+
     if (_notificationsEnabled) {
-      final hasPermission = await _notificationService.requestPermissions();
-      if (hasPermission) {
+      final access = await _notificationService.notificationAccess();
+      if (mounted) {
+        setState(() => _notificationAccess = access);
+      }
+      if (access == NotificationAccess.granted) {
         await _notificationService.scheduleDailyNotifications();
-      } else {
-        // If permission denied, show a message
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Notification permission is required for reminders'),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              action: SnackBarAction(
-                label: 'Open Settings',
-                onPressed: () async {
-                  await _notificationService.requestPermissions();
-                },
-              ),
-            ),
-          );
-        }
       }
     } else {
-      // Cancel all notifications when disabled
       await _notificationService.cancelAllNotifications();
     }
+  }
+
+  Future<void> _onRemindersChanged(bool value) async {
+    if (!value) {
+      setState(() => _notificationsEnabled = false);
+      await _saveSettings();
+      return;
+    }
+
+    var access = await _notificationService.notificationAccess();
+    if (access != NotificationAccess.granted && access != NotificationAccess.unavailable) {
+      final result = await requestNotificationsWithExplanation(context);
+      if (!mounted) return;
+      if (result == PermissionPromptResult.dismissed) {
+        setState(() => _notificationsEnabled = false);
+        await _saveSettings();
+        return;
+      }
+      if (result != PermissionPromptResult.granted) {
+        access = await _notificationService.notificationAccess();
+        setState(() {
+          _notificationsEnabled = true;
+          _notificationAccess = access;
+        });
+        await _storage.saveSetting('notificationsEnabled', true);
+        return;
+      }
+      access = NotificationAccess.granted;
+    }
+
+    setState(() {
+      _notificationsEnabled = true;
+      _notificationAccess = access;
+    });
+    await _saveSettings();
+  }
+
+  bool get _remindersBlocked =>
+      _notificationsEnabled &&
+      _notificationAccess != NotificationAccess.granted &&
+      _notificationAccess != NotificationAccess.unavailable;
+
+  String _reminderSubtitle() {
+    if (!_notificationsEnabled) return 'Reminders are turned off';
+    if (_remindersBlocked) {
+      return 'Reminders will not fire until notifications are allowed';
+    }
+    return 'You\'ll receive reminders for upcoming events';
   }
 
   void _toggleDay(int day) {
@@ -128,34 +168,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   _buildStatusRow('Initialized', status['initialized'] ?? false),
                   _buildStatusRow('Permission Granted', status['permissionGranted'] ?? false),
-                  _buildStatusRow('Exact Alarm Permission', status['exactAlarmPermission'] ?? false),
-                  if (!(status['exactAlarmPermission'] ?? false)) ...[
+                  if (!(status['permissionGranted'] ?? false)) ...[
                     const SizedBox(height: 8),
+                    const Text(
+                      'Reminders will not fire until notifications are allowed.',
+                    ),
                     TextButton.icon(
                       onPressed: () async {
                         Navigator.pop(context);
-                        await _notificationService.openExactAlarmSettings();
+                        try {
+                          await openAppSettings();
+                        } catch (e) {
+                          debugPrint('Could not open system settings: $e');
+                        }
                       },
                       icon: const Icon(Icons.settings, size: 18),
-                      label: const Text('Open Exact Alarm Settings'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.orange,
-                      ),
-                    ),
-                  ],
-                  _buildStatusRow('Battery Optimization Disabled', status['batteryOptimizationDisabled'] ?? false),
-                  if (!(status['batteryOptimizationDisabled'] ?? false)) ...[
-                    const SizedBox(height: 8),
-                    TextButton.icon(
-                      onPressed: () async {
-                        Navigator.pop(context);
-                        await _notificationService.requestDisableBatteryOptimization();
-                      },
-                      icon: const Icon(Icons.battery_charging_full, size: 18),
-                      label: const Text('Disable Battery Optimization'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.orange,
-                      ),
+                      label: const Text('Open settings'),
                     ),
                   ],
                   _buildStatusRow('Notifications Enabled', status['notificationsEnabled'] ?? false),
@@ -193,7 +221,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error checking status: $e')),
+          const SnackBar(content: Text('Could not check reminder status.')),
         );
       }
     }
@@ -404,9 +432,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         SwitchListTile(
                           title: const Text('Enable Reminders'),
                           subtitle: Text(
-                            _notificationsEnabled
-                                ? 'You\'ll receive reminders for upcoming events'
-                                : 'Reminders are turned off',
+                            _reminderSubtitle(),
                             style: TextStyle(
                               color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                             ),
@@ -424,10 +450,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                           value: _notificationsEnabled,
                           onChanged: (value) async {
-                            setState(() => _notificationsEnabled = value);
-                            await _saveSettings();
+                            await _onRemindersChanged(value);
                           },
                         ),
+                        if (_remindersBlocked)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: FilledButton.tonal(
+                                onPressed: () => _onRemindersChanged(true),
+                                child: const Text('Allow notifications'),
+                              ),
+                            ),
+                          ),
                         if (_notificationsEnabled) ...[
                           const Divider(height: 1, indent: 16),
                           Padding(
@@ -565,7 +601,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Text(
-                                      'Notifications work even when the app is closed. If notifications don\'t appear, check your device\'s battery optimization settings and ensure this app is not optimized.',
+                                      'Reminders stay on this device and can appear when the app is closed. Timing is inexact, so a reminder may arrive a little after the time you pick. If nothing appears, allow notifications for Happaroo in system settings.',
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
@@ -784,26 +820,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   _buildSectionHeader('About', Icons.info_outline_rounded),
                   const SizedBox(height: 12),
                   _buildCard(
-                    child: ListTile(
-                      leading: Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Theme.of(context).colorScheme.primary,
-                              Theme.of(context).colorScheme.secondary,
-                            ],
+                    child: Column(
+                      children: [
+                        ListTile(
+                          leading: Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Theme.of(context).colorScheme.primary,
+                                  Theme.of(context).colorScheme.secondary,
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(Icons.celebration_rounded, color: Colors.white),
                           ),
-                          borderRadius: BorderRadius.circular(12),
+                          title: const Text(
+                            kAppDisplayName,
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          subtitle: const Text('Version $kAppVersionLabel'),
                         ),
-                        child: const Icon(Icons.celebration_rounded, color: Colors.white),
-                      ),
-                      title: const Text(
-                        'Event Tracker',
-                        style: TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                      subtitle: const Text('Version 1.0.0'),
+                        const Divider(height: 1, indent: 16),
+                        ListTile(
+                          leading: const Icon(Icons.privacy_tip_outlined),
+                          title: const Text('Privacy policy'),
+                          subtitle: const Text(kPrivacyPolicyUrl),
+                          trailing: const Icon(Icons.open_in_new_rounded),
+                          onTap: _openPrivacyPolicy,
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 100),
@@ -853,10 +901,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Future<void> _openPrivacyPolicy() async {
+    final opened = await LinkService.open(kPrivacyPolicyUrl);
+    if (opened || !mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Privacy policy'),
+        content: const SelectableText(kPrivacyPolicyUrl),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _importFromContacts() async {
-    // Show loading dialog
     if (!mounted) return;
-    
+
+    final permission = await requestContactsWithExplanation(context);
+    if (!mounted || permission != PermissionPromptResult.granted) return;
+
+    var loadingDialogOpen = true;
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -866,10 +936,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
 
     try {
-      final potentialBirthdays = await _contactParserService.parseContacts();
-      
+      final importResult = await _contactParserService.parseContacts();
+
       if (!mounted) return;
+      loadingDialogOpen = false;
       Navigator.pop(context); // Close loading dialog
+
+      if (importResult.status == ContactImportStatus.permissionDenied) {
+        await showContactsDeniedDialog(context);
+        return;
+      }
+      if (importResult.status != ContactImportStatus.success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not read contacts. Nothing was imported.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
+
+      final potentialBirthdays = importResult.birthdays;
 
       if (potentialBirthdays.isEmpty) {
         if (mounted) {
@@ -997,11 +1084,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
         }
       }
     } catch (e) {
+      debugPrint('Error importing contacts: $e');
       if (mounted) {
-        Navigator.pop(context); // Close loading dialog
+        if (loadingDialogOpen) {
+          loadingDialogOpen = false;
+          Navigator.pop(context);
+        }
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error importing contacts: $e'),
+          const SnackBar(
+            content: Text('Could not import contacts. Nothing was imported.'),
             behavior: SnackBarBehavior.floating,
           ),
         );

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/calendar/v3.dart' as cal;
 import 'package:http/http.dart' as http;
+import '../app_config.dart';
 import '../models/event.dart';
 import '../utils/event_calculator.dart';
 
@@ -33,6 +34,9 @@ class GoogleCalendarService {
   bool get isAuthenticated => _isAuthenticated;
 
   Future<bool> signIn() async {
+    if (!kCalendarSyncEnabled) {
+      return false;
+    }
     try {
       final googleSignIn = _getGoogleSignIn();
       final account = await googleSignIn.signIn();
@@ -53,6 +57,9 @@ class GoogleCalendarService {
   }
 
   Future<void> signOut() async {
+    if (!kCalendarSyncEnabled) {
+      return;
+    }
     try {
       if (_googleSignIn != null) {
         await _googleSignIn!.signOut();
@@ -65,6 +72,9 @@ class GoogleCalendarService {
   }
 
   Future<bool> syncEventToCalendar(Event event) async {
+    if (!kCalendarSyncEnabled) {
+      return false;
+    }
     if (!_isAuthenticated || _calendarApi == null) {
       return false;
     }
@@ -121,6 +131,9 @@ class GoogleCalendarService {
   }
 
   Future<bool> syncAllEvents(List<Event> events) async {
+    if (!kCalendarSyncEnabled) {
+      return false;
+    }
     if (!_isAuthenticated || _calendarApi == null) {
       return false;
     }
