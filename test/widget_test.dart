@@ -65,6 +65,24 @@ void main() {
     expect(find.text('Birthday App'), findsNothing);
   });
 
+  testWidgets('saved light theme is used from the first frame after a restart', (tester) async {
+    await StorageService().saveSetting('themeMode', 'light');
+    tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
+    addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+
+    await tester.pumpWidget(const HapparooApp());
+    final app = tester.widget<MaterialApp>(find.byType(MaterialApp));
+    expect(app.themeMode, ThemeMode.light);
+    await _pumpPastLoading(tester);
+  });
+
+  testWidgets('saved dark theme survives a restart', (tester) async {
+    await StorageService().saveSetting('themeMode', 'dark');
+    await tester.pumpWidget(const HapparooApp());
+    expect(tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode, ThemeMode.dark);
+    await _pumpPastLoading(tester);
+  });
+
   testWidgets('main screens are reachable after loading', (tester) async {
     tester.view.physicalSize = const Size(800, 1400);
     tester.view.devicePixelRatio = 1;
