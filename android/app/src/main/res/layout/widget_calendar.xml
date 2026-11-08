@@ -45,231 +45,441 @@
         android:layout_weight="1" android:orientation="vertical">
         <LinearLayout android:id="@+id/cal_week0" android:layout_width="match_parent" android:layout_height="0dp"
             android:layout_weight="1" android:orientation="horizontal">
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c0" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c0" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="1" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c1" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n0" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c1" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="2" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c2" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n1" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c2" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="3" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c3" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n2" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c3" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="4" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c4" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n3" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="Grammy" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c4" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="5" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c5" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n4" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c5" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="6" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c6" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n5" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c6" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="7" />
-            </FrameLayout>
+                <TextView android:id="@+id/cal_n6" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
         </LinearLayout>
         <LinearLayout android:id="@+id/cal_week1" android:layout_width="match_parent" android:layout_height="0dp"
             android:layout_weight="1" android:orientation="horizontal">
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c7" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c7" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="8" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c8" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n7" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c8" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="9" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c9" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n8" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c9" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="10" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c10" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n9" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c10" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="11" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c11" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n10" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="Paul" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c11" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="12" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c12" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n11" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="Melanie" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c12" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="13" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c13" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n12" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c13" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="14" />
-            </FrameLayout>
+                <TextView android:id="@+id/cal_n13" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="Michael" />
+            </LinearLayout>
         </LinearLayout>
         <LinearLayout android:id="@+id/cal_week2" android:layout_width="match_parent" android:layout_height="0dp"
             android:layout_weight="1" android:orientation="horizontal">
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c14" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c14" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="15" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c15" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n14" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c15" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="16" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c16" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n15" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c16" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="17" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c17" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n16" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c17" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="18" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c18" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n17" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="Hunter" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c18" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="19" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c19" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n18" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c19" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="20" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c20" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n19" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c20" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="21" />
-            </FrameLayout>
+                <TextView android:id="@+id/cal_n20" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
         </LinearLayout>
         <LinearLayout android:id="@+id/cal_week3" android:layout_width="match_parent" android:layout_height="0dp"
             android:layout_weight="1" android:orientation="horizontal">
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c21" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c21" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="22" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c22" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n21" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c22" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="23" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c23" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n22" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c23" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="24" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c24" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n23" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c24" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="25" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c25" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n24" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c25" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="26" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c26" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n25" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c26" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="27" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c27" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n26" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c27" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="28" />
-            </FrameLayout>
+                <TextView android:id="@+id/cal_n27" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
         </LinearLayout>
         <LinearLayout android:id="@+id/cal_week4" android:layout_width="match_parent" android:layout_height="0dp"
             android:layout_weight="1" android:orientation="horizontal">
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c28" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c28" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="29" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c29" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n28" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c29" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="30" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c30" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n29" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c30" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="1" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c31" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n30" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c31" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="2" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c32" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n31" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c32" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="3" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c33" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n32" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c33" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="4" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c34" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n33" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c34" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="5" />
-            </FrameLayout>
+                <TextView android:id="@+id/cal_n34" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
         </LinearLayout>
         <LinearLayout android:id="@+id/cal_week5" android:layout_width="match_parent" android:layout_height="0dp"
             android:layout_weight="1" android:orientation="horizontal">
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c35" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c35" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="6" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c36" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n35" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c36" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="7" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c37" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n36" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c37" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="8" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c38" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n37" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c38" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="9" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c39" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n38" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c39" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="10" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c40" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n39" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c40" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="11" />
-            </FrameLayout>
-            <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1">
-                <TextView android:id="@+id/cal_c41" android:layout_width="30dp" android:layout_height="30dp"
-                    android:layout_gravity="center" android:gravity="center" android:textSize="13sp"
+                <TextView android:id="@+id/cal_n40" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+                android:orientation="vertical" android:gravity="center_horizontal" android:paddingTop="2dp">
+                <TextView android:id="@+id/cal_c41" android:layout_width="26dp" android:layout_height="26dp"
+                    android:gravity="center" android:textSize="12sp"
                     android:textColor="@color/widget_text" android:text="12" />
-            </FrameLayout>
+                <TextView android:id="@+id/cal_n41" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp" android:paddingStart="1dp" android:paddingEnd="1dp"
+                    android:gravity="center" android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_bday" android:maxLines="1" android:ellipsize="end" android:text="" />
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
     <FrameLayout android:id="@+id/cal_rule" android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="4dp"

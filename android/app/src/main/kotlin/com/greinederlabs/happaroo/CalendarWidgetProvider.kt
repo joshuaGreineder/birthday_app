@@ -66,6 +66,7 @@ class CalendarWidgetProvider : AppWidgetProvider() {
             R.id.cal_c28, R.id.cal_c29, R.id.cal_c30, R.id.cal_c31, R.id.cal_c32, R.id.cal_c33, R.id.cal_c34,
             R.id.cal_c35, R.id.cal_c36, R.id.cal_c37, R.id.cal_c38, R.id.cal_c39, R.id.cal_c40, R.id.cal_c41,
         )
+        private val nameIds = intArrayOf(R.id.cal_n0, R.id.cal_n1, R.id.cal_n2, R.id.cal_n3, R.id.cal_n4, R.id.cal_n5, R.id.cal_n6, R.id.cal_n7, R.id.cal_n8, R.id.cal_n9, R.id.cal_n10, R.id.cal_n11, R.id.cal_n12, R.id.cal_n13, R.id.cal_n14, R.id.cal_n15, R.id.cal_n16, R.id.cal_n17, R.id.cal_n18, R.id.cal_n19, R.id.cal_n20, R.id.cal_n21, R.id.cal_n22, R.id.cal_n23, R.id.cal_n24, R.id.cal_n25, R.id.cal_n26, R.id.cal_n27, R.id.cal_n28, R.id.cal_n29, R.id.cal_n30, R.id.cal_n31, R.id.cal_n32, R.id.cal_n33, R.id.cal_n34, R.id.cal_n35, R.id.cal_n36, R.id.cal_n37, R.id.cal_n38, R.id.cal_n39, R.id.cal_n40, R.id.cal_n41)
         private val weekRowIds = intArrayOf(R.id.cal_week0, R.id.cal_week1, R.id.cal_week2, R.id.cal_week3, R.id.cal_week4, R.id.cal_week5)
         private val weekdayIds = intArrayOf(R.id.cal_wd0, R.id.cal_wd1, R.id.cal_wd2, R.id.cal_wd3, R.id.cal_wd4, R.id.cal_wd5, R.id.cal_wd6)
 
@@ -78,6 +79,9 @@ class CalendarWidgetProvider : AppWidgetProvider() {
                 context, id * 10 + code, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
             )
         }
+
+        /** "Rebekah and Joshua" -> "Rebekah", "Mom and Dad Gann" -> "Mom". */
+        private fun firstName(name: String): String = name.trim().substringBefore(' ').ifEmpty { name }
 
         fun render(context: Context, manager: AppWidgetManager, id: Int) {
             try {
@@ -116,12 +120,12 @@ class CalendarWidgetProvider : AppWidgetProvider() {
                 val items = WidgetData.load(context)
                 val birthdays = HashSet<Int>()
                 val anniversaries = HashSet<Int>()
-                val names = ArrayList<Pair<Int, String>>()
+                val byDay = HashMap<Int, MutableList<WidgetData.Item>>()
                 for (item in items) {
                     val date = WidgetData.observedIn(item, month.year) ?: continue
                     if (date.monthValue != month.monthValue) continue
                     if (item.birthday) birthdays.add(date.dayOfMonth) else anniversaries.add(date.dayOfMonth)
-                    names.add(date.dayOfMonth to item.name)
+                    byDay.getOrPut(date.dayOfMonth) { ArrayList() }.add(item)
                 }
 
                 val text = p.text
@@ -139,6 +143,7 @@ class CalendarWidgetProvider : AppWidgetProvider() {
                     val cell = cellIds[i]
                     if (dayNum < 1 || dayNum > month.lengthOfMonth()) {
                         views.setTextViewText(cell, "")
+                        views.setTextViewText(nameIds[i], "")
                         views.setInt(cell, "setBackgroundResource", 0)
                         continue
                     }
@@ -166,14 +171,49 @@ class CalendarWidgetProvider : AppWidgetProvider() {
                         else -> text
                     }
                     views.setTextColor(cell, color)
+
+                    // First name under the date; "+1" when several share the day.
+                    val people = byDay[dayNum].orEmpty().sortedBy { it.name.lowercase(locale) }
+                    val label = when (people.size) {
+                        0 -> ""
+                        1 -> firstName(people[0].name)
+                        else -> "${firstName(people[0].name)} +${people.size - 1}"
+                    }
+                    views.setTextViewText(nameIds[i], label)
+                    views.setTextColor(
+                        nameIds[i],
+                        when {
+                            past -> sub
+                            a && b -> accent
+                            b -> bday
+                            else -> anniv
+                        },
+                    )
                 }
                 for (r in 0 until 6) {
                     views.setViewVisibility(weekRowIds[r], if (r < weeks) View.VISIBLE else View.GONE)
                 }
 
-                val footer = names.sortedBy { it.first }
-                    .joinToString("  ·  ") { "${it.first} ${it.second.substringBefore(' ')}" }
-                views.setTextViewText(R.id.cal_footer, if (footer.isEmpty()) "Nothing this month" else footer)
+                // Footer: what's next (this month) or a count (other months).
+                val isThisMonth = month.year == today.year && month.monthValue == today.monthValue
+                val footer = if (isThisMonth) {
+                    WidgetData.upcoming(items, today).firstOrNull()?.let { u ->
+                        val whenText = when (u.days) {
+                            0L -> "today"
+                            1L -> "tomorrow"
+                            else -> "in ${u.days} days"
+                        }
+                        "Next: ${u.item.name}, ${WidgetData.weekdayShort(u.date)} ${u.date.dayOfMonth} · $whenText"
+                    } ?: "No events yet"
+                } else {
+                    val count = byDay.values.sumOf { it.size }
+                    when (count) {
+                        0 -> "Nothing in ${month.month.getDisplayName(TextStyle.FULL, locale)}"
+                        1 -> "1 event"
+                        else -> "$count events"
+                    }
+                }
+                views.setTextViewText(R.id.cal_footer, footer)
 
                 manager.updateAppWidget(id, views)
             } catch (e: Exception) {
