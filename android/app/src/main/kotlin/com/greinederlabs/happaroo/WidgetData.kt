@@ -87,6 +87,10 @@ object WidgetData {
         if (u.item.label.isNotBlank()) {
             return if (years > 0) "${u.item.label} · $years yrs" else u.item.label
         }
+        if (u.item.birthday) {
+            // Under 2: show the current age in months and days, matching the app.
+            youngAge(u.item, u.date.minusDays(u.days))?.let { return it }
+        }
         return if (u.item.birthday) {
             when {
                 years > 0 -> "Turns $years"
@@ -99,6 +103,24 @@ object WidgetData {
                 years == 0 -> "Wedding day"
                 else -> "Anniversary"
             }
+        }
+    }
+
+    /** "21 months, 2 days old" for anyone under 2 on [today]; null otherwise. */
+    fun youngAge(item: Item, today: LocalDate): String? {
+        if (!item.birthday || item.year <= 0) return null
+        val birth = observedIn(item, item.year) ?: return null
+        if (today.isBefore(birth)) return null
+        val second = observedIn(item, item.year + 2) ?: return null
+        if (!today.isBefore(second)) return null
+        if (today == birth) return "Born today"
+        val months = ChronoUnit.MONTHS.between(birth, today).toInt()
+        val days = ChronoUnit.DAYS.between(birth.plusMonths(months.toLong()), today).toInt()
+        fun unit(n: Int, one: String) = "$n $one" + if (n == 1) "" else "s"
+        return when {
+            months == 0 -> "${unit(days, "day")} old"
+            days == 0 -> "${unit(months, "month")} old"
+            else -> "${unit(months, "month")}, ${unit(days, "day")} old"
         }
     }
 

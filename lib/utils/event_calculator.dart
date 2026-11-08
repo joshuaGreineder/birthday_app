@@ -137,6 +137,33 @@ class EventCalculator {
     }).toList();
   }
 
+  /// Current age in months and days for anyone under 2, e.g. "21 months, 2 days old".
+  /// Null for older people, unknown birth years, future births and non-birthdays,
+  /// so callers show years as usual.
+  static String? youngAgeText(Event event, {DateTime? now}) {
+    if (!hasKnownYear(event) || event.eventType != EventType.birthday) return null;
+    final today = _dateOnly(now ?? DateTime.now());
+    final birth = _dateOnly(event.originalDate);
+    if (today.isBefore(birth)) return null;
+    final second = observedOn(birth.year + 2, birth.month, birth.day);
+    if (!today.isBefore(second)) return null;
+    if (_sameDate(today, birth)) return 'Born today';
+
+    var months = (today.year - birth.year) * 12 + (today.month - birth.month);
+    if (today.day < birth.day) months--;
+    // Day count from the latest monthly anniversary (clamped for short months).
+    final anchorYear = birth.year + (birth.month - 1 + months) ~/ 12;
+    final anchorMonth = (birth.month - 1 + months) % 12 + 1;
+    final lastDay = DateTime(anchorYear, anchorMonth + 1, 0).day;
+    final anchor = DateTime(anchorYear, anchorMonth, birth.day > lastDay ? lastDay : birth.day);
+    final days = today.difference(anchor).inDays;
+
+    String unit(int n, String one) => '$n $one${n == 1 ? '' : 's'}';
+    if (months == 0) return '${unit(days, 'day')} old';
+    if (days == 0) return '${unit(months, 'month')} old';
+    return '${unit(months, 'month')}, ${unit(days, 'day')} old';
+  }
+
   static String nowYearsText(int years) {
     if (years == 1) return 'Now 1 year old!';
     return 'Now $years years old!';

@@ -124,6 +124,8 @@ class EventCard extends StatelessWidget {
                 : '$daysUntil days';
     final soon = !past && daysUntil <= 7;
     final hasGroup = event.group.trim().isNotEmpty;
+    // Under 2: also show the current age in months and days.
+    final youngAge = past ? null : EventCalculator.youngAgeText(event);
     // At very large text the pill moves under the name so the name keeps its width.
     final stacked = MediaQuery.textScalerOf(context).scale(1) > 1.3;
     final pill = Container(
@@ -154,7 +156,7 @@ class EventCard extends StatelessWidget {
     // One scannable row: date | name + what's happening | countdown.
     return Semantics(
       button: onTap != null,
-      label: '${event.name}, ${event.displayGroup}, $milestone, $detail, '
+      label: '${event.name}, ${event.displayGroup}, $milestone, ${youngAge ?? detail}, '
           '${formatMonthDay(next)}, ${past ? 'already passed this year' : daysUntil == 0 ? 'today' : 'in $daysUntil days'}',
       excludeSemantics: true,
       child: Opacity(
@@ -232,6 +234,16 @@ class EventCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: text.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
                         ),
+                        if (youngAge != null)
+                          Text(
+                            youngAge,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: text.bodySmall?.copyWith(
+                              color: iconColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         if (stacked) ...[
                           const SizedBox(height: 4),
                           pill,
