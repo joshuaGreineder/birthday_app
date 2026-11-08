@@ -28,32 +28,43 @@ class SingleEventWidgetProvider : AppWidgetProvider() {
 
                 val upcoming = WidgetData.upcoming(WidgetData.load(context))
                 if (upcoming.isEmpty()) {
+                    views.setImageViewResource(R.id.next_icon, R.drawable.ic_widget_cake)
                     views.setTextViewText(R.id.next_when, "HAPPAROO")
                     views.setTextViewText(R.id.next_name, "No events yet")
                     views.setTextViewText(R.id.next_detail, "Add a birthday in the app")
-                    views.setTextViewText(R.id.next_date, "")
+                    views.setViewVisibility(R.id.next_rule, View.GONE)
                     views.setViewVisibility(R.id.next_more, View.GONE)
                 } else {
                     val first = upcoming.first()
                     val sameDay = upcoming.count { it.date == first.date }
-                    val whenText = when (first.days) {
-                        0L -> "TODAY"
-                        1L -> "TOMORROW"
-                        else -> "IN ${first.days} DAYS"
-                    }
-                    views.setTextViewText(R.id.next_when, whenText)
-                    views.setTextViewText(R.id.next_name, first.item.name)
-                    views.setTextViewText(R.id.next_detail, WidgetData.detail(first))
-                    views.setTextViewText(
-                        R.id.next_date,
-                        "${WidgetData.weekdayShort(first.date)}, ${WidgetData.monthShort(first.date)} ${first.date.dayOfMonth}",
+                    views.setImageViewResource(
+                        R.id.next_icon,
+                        if (first.item.birthday) R.drawable.ic_widget_cake else R.drawable.ic_widget_heart,
                     )
-                    if (sameDay > 1) {
-                        views.setTextViewText(R.id.next_more, "+${sameDay - 1} more that day")
-                        views.setViewVisibility(R.id.next_more, View.VISIBLE)
-                    } else {
-                        views.setViewVisibility(R.id.next_more, View.GONE)
+                    views.setTextViewText(
+                        R.id.next_when,
+                        when (first.days) {
+                            0L -> "TODAY"
+                            1L -> "TOMORROW"
+                            else -> "IN ${first.days} DAYS"
+                        },
+                    )
+                    views.setTextViewText(R.id.next_name, first.item.name)
+                    val date = "${WidgetData.weekdayShort(first.date)} ${first.date.dayOfMonth}"
+                    views.setTextViewText(R.id.next_detail, "${WidgetData.detail(first)} · $date")
+
+                    val more = when {
+                        sameDay > 1 -> "+${sameDay - 1} more that day"
+                        upcoming.size > 1 -> {
+                            val second = upcoming[1]
+                            "Then ${second.item.name} · ${WidgetData.weekdayShort(second.date)} ${second.date.dayOfMonth}"
+                        }
+                        else -> null
                     }
+                    val visible = if (more != null) View.VISIBLE else View.GONE
+                    views.setViewVisibility(R.id.next_rule, visible)
+                    views.setViewVisibility(R.id.next_more, visible)
+                    if (more != null) views.setTextViewText(R.id.next_more, more)
                 }
                 manager.updateAppWidget(id, views)
             } catch (e: Exception) {

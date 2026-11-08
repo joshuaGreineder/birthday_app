@@ -117,7 +117,11 @@ class CalendarWidgetProvider : AppWidgetProvider() {
                 }
 
                 val text = WidgetData.color(context, R.color.widget_text)
+                val sub = WidgetData.color(context, R.color.widget_subtext)
+                val accent = WidgetData.color(context, R.color.widget_accent)
                 val onAccent = WidgetData.color(context, R.color.widget_on_accent)
+                val bday = WidgetData.color(context, R.color.widget_bday)
+                val anniv = WidgetData.color(context, R.color.widget_anniv)
                 val first = month.atDay(1)
                 val lead = ((first.dayOfWeek.value - firstDay.value) + 7) % 7
                 val weeks = (lead + month.lengthOfMonth() + 6) / 7
@@ -143,7 +147,17 @@ class CalendarWidgetProvider : AppWidgetProvider() {
                         else -> 0
                     }
                     views.setInt(cell, "setBackgroundResource", background)
-                    views.setTextColor(cell, if (isToday && (a || b)) onAccent else text)
+                    val past = month.year == today.year && month.monthValue == today.monthValue && dayNum < today.dayOfMonth
+                    val color = when {
+                        isToday && (a || b) -> onAccent
+                        isToday -> accent
+                        a && b -> accent
+                        b -> bday
+                        a -> anniv
+                        past -> sub
+                        else -> text
+                    }
+                    views.setTextColor(cell, color)
                 }
                 for (r in 0 until 6) {
                     views.setViewVisibility(weekRowIds[r], if (r < weeks) View.VISIBLE else View.GONE)

@@ -57,6 +57,8 @@ class UpcomingWidgetProvider : AppWidgetProvider() {
                 val sub = WidgetData.color(context, R.color.widget_subtext)
                 val accent = WidgetData.color(context, R.color.widget_accent)
                 val onAccent = WidgetData.color(context, R.color.widget_on_accent)
+                val bday = WidgetData.color(context, R.color.widget_bday)
+                val anniv = WidgetData.color(context, R.color.widget_anniv)
 
                 for (i in 0 until MAX_ROWS) {
                     if (i >= shown.size) {
@@ -70,6 +72,7 @@ class UpcomingWidgetProvider : AppWidgetProvider() {
                         if (u.item.birthday) R.drawable.widget_date_bday else R.drawable.widget_date_anniv,
                     )
                     views.setTextViewText(weekdayIds[i], WidgetData.weekdayShort(u.date).uppercase())
+                    views.setTextColor(weekdayIds[i], if (u.item.birthday) bday else anniv)
                     views.setTextViewText(dayIds[i], u.date.dayOfMonth.toString())
                     views.setTextColor(dayIds[i], text)
                     views.setTextViewText(nameIds[i], u.item.name)

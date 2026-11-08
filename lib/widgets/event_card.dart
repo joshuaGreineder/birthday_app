@@ -12,10 +12,15 @@ class EventCard extends StatelessWidget {
   final Event event;
   final VoidCallback? onTap;
 
+  /// Set when the row shows an occurrence that has already happened this year
+  /// (Timeline, earlier this month). The row is dimmed and says "Passed".
+  final DateTime? passedOn;
+
   const EventCard({
     super.key,
     required this.event,
     this.onTap,
+    this.passedOn,
   });
 
   @override
@@ -36,7 +41,7 @@ class EventCard extends StatelessWidget {
         : scheme.onSurface;
     final iconColor = customType?.primaryColor ?? accent;
 
-    final String milestone;
+    String milestone;
     final String detail;
     if (!knownYear) {
       milestone = customType?.name ?? (isBirthday ? 'Birthday' : 'Anniversary');
@@ -106,21 +111,25 @@ class EventCard extends StatelessWidget {
       detail = daysUntil == 0 ? 'Anniversary today' : '$years years together';
     }
 
-    final next = EventCalculator.getNextOccurrence(event);
+    final next = passedOn ?? EventCalculator.getNextOccurrence(event);
+    final past = passedOn != null;
+    if (past) milestone = _pastMilestone(milestone, knownYear, isBirthday, customType != null);
     const weekdays = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
-    final when = daysUntil == 0
-        ? 'Today'
-        : daysUntil == 1
-            ? 'Tomorrow'
-            : '$daysUntil days';
-    final soon = daysUntil <= 7;
+    final when = past
+        ? 'Passed'
+        : daysUntil == 0
+            ? 'Today'
+            : daysUntil == 1
+                ? 'Tomorrow'
+                : '$daysUntil days';
+    final soon = !past && daysUntil <= 7;
     final hasGroup = event.group.trim().isNotEmpty;
     // At very large text the pill moves under the name so the name keeps its width.
     final stacked = MediaQuery.textScalerOf(context).scale(1) > 1.3;
     final pill = Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: daysUntil == 0
+        color: !past && daysUntil == 0
             ? scheme.primary
             : soon
                 ? scheme.primary.withValues(alpha: 0.12)
@@ -130,7 +139,7 @@ class EventCard extends StatelessWidget {
       child: Text(
         when,
         style: text.labelLarge?.copyWith(
-          color: daysUntil == 0
+          color: !past && daysUntil == 0
               ? scheme.onPrimary
               : soon
                   ? scheme.primary
@@ -146,9 +155,11 @@ class EventCard extends StatelessWidget {
     return Semantics(
       button: onTap != null,
       label: '${event.name}, ${event.displayGroup}, $milestone, $detail, '
-          '${formatMonthDay(next)}, ${daysUntil == 0 ? 'today' : 'in $daysUntil days'}',
+          '${formatMonthDay(next)}, ${past ? 'already passed this year' : daysUntil == 0 ? 'today' : 'in $daysUntil days'}',
       excludeSemantics: true,
-      child: Material(
+      child: Opacity(
+        opacity: past ? 0.6 : 1,
+        child: Material(
         color: scheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppSpace.sm),
         child: InkWell(
@@ -238,7 +249,15 @@ class EventCard extends StatelessWidget {
           ),
         ),
       ),
+      ),
     );
+  }
+
+  String _pastMilestone(String upcoming, bool knownYear, bool isBirthday, bool custom) {
+    if (!knownYear || custom) return upcoming;
+    final years = passedOn!.year - event.originalDate.year;
+    if (isBirthday) return years <= 0 ? 'Born' : 'Turned $years';
+    return '${_ordinal(years)} anniversary';
   }
 
   String _ordinal(int number) {

@@ -2,13 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import '../models/event.dart';
-import '../models/custom_event_type.dart';
 import '../services/storage_service.dart';
 import '../theme/app_space.dart';
-import '../theme/app_theme.dart';
 import '../utils/event_calculator.dart';
+import '../widgets/event_card.dart';
 import '../utils/user_message.dart';
-import '../utils/yearless_date.dart';
 import '../widgets/screen_status.dart';
 import 'add_edit_event_screen.dart';
 
@@ -269,251 +267,28 @@ class _TimelineScreenState extends State<TimelineScreen> {
       );
     }
 
-    // Group events by day
-    final groupedEvents = <int, List<Event>>{};
-    for (final event in events) {
-      final day = event.originalDate.day;
-      groupedEvents.putIfAbsent(day, () => []).add(event);
-    }
-    final sortedDays = groupedEvents.keys.toList()..sort();
-
-    return ListView.builder(
+    // Same compact rows as Home. Earlier this month shows as passed rather
+    // than "in 360 days".
+    final now = DateTime.now();
+    return ListView.separated(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-      itemCount: sortedDays.length,
+      itemCount: events.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 6),
       itemBuilder: (context, index) {
-        final day = sortedDays[index];
-        final dayEvents = groupedEvents[day]!;
-        final isToday = _isToday(month, day);
-
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Date badge
-              Container(
-                width: 56,
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Column(
-                  children: [
-                    Container(
-                      constraints: const BoxConstraints(minWidth: AppSpace.touch, minHeight: AppSpace.touch),
-                      padding: const EdgeInsets.symmetric(horizontal: AppSpace.xs, vertical: AppSpace.xs),
-                      decoration: BoxDecoration(
-                        color: isToday
-                            ? Theme.of(context).colorScheme.primary
-                            : Theme.of(context).colorScheme.surfaceContainerLow,
-                        borderRadius: BorderRadius.circular(AppSpace.sm),
-                        border: !isToday
-                            ? Border.all(color: Theme.of(context).colorScheme.outlineVariant)
-                            : null,
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            _getOrdinalSuffix(day),
-                            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                                  color: isToday
-                                      ? Theme.of(context).colorScheme.onPrimary
-                                      : Theme.of(context).colorScheme.onSurfaceVariant,
-                                ),
-                          ),
-                          Text(
-                            '$day',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  color: isToday
-                                      ? Theme.of(context).colorScheme.onPrimary
-                                      : Theme.of(context).colorScheme.onSurface,
-                                ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Connector line
-                    if (index < sortedDays.length - 1)
-                      Container(
-                        width: 2,
-                        height: 24,
-                        margin: const EdgeInsets.only(top: 8),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(1),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Events list
-              Expanded(
-                child: Column(
-                  children: dayEvents.map((event) => _buildEventCard(event, isToday)).toList(),
-                ),
-              ),
-            ],
-          ),
+        final event = events[index];
+        final thisYear = EventCalculator.observedOn(now.year, month, event.originalDate.day);
+        final passed = month == now.month &&
+            thisYear.isBefore(DateTime(now.year, now.month, now.day)) &&
+            (!EventCalculator.hasKnownYear(event) || event.originalDate.year <= now.year);
+        return EventCard(
+          event: event,
+          passedOn: passed ? thisYear : null,
+          onTap: () => _editEvent(event),
         );
       },
     );
   }
 
-  Widget _buildEventCard(Event event, bool isToday) {
-    final isBirthday = event.eventType == EventType.birthday;
-    
-    // Get custom event type if applicable
-    final storage = StorageService();
-    CustomEventType? customType;
-    if (event.customEventTypeId != null) {
-      customType = storage.getCustomEventType(event.customEventTypeId!);
-    }
-    
-    // Colors based on event type (custom type takes precedence)
-    final color = customType?.primaryColor ?? EventPalette.accent(context, birthday: isBirthday);
 
-    String milestoneText;
-    String subtitleText;
-    final daysUntil = EventCalculator.getDaysUntil(event);
-    final knownYear = EventCalculator.hasKnownYear(event);
 
-    if (!knownYear) {
-      milestoneText = customType?.name ?? (isBirthday ? 'Birthday' : 'Anniversary');
-      subtitleText = formatMonthDay(event.originalDate);
-    } else if (customType != null) {
-      final years = EventCalculator.getYearsTogether(event);
-      final nextYears = years + 1;
-      
-      if (isToday) {
-        milestoneText = customType.nowTextTemplate.replaceAll('{years}', nextYears.toString());
-      } else {
-        milestoneText = customType.turningTextTemplate.replaceAll('{years}', nextYears.toString());
-      }
-      subtitleText = 'Since ${event.originalDate.year}';
-    } else if (isBirthday) {
-      final age = EventCalculator.getAge(event);
-      final babyAge = EventCalculator.getBabyAge(event);
-      
-      if (isToday) {
-        // Special case: if born today (same year), show "Born today!"
-        final now = DateTime.now();
-        final wasBornThisYear = now.year == event.originalDate.year;
-        if (age == 0 && wasBornThisYear) {
-          milestoneText = "Born today! 🎂";
-        } else {
-          // On the birthday, they are now that age
-          milestoneText = EventCalculator.nowYearsText(age + 1);
-        }
-      } else {
-        // For newborns, always say "Turning 1 year" instead of months
-        if (babyAge != null) {
-          milestoneText = "Turning 1 year";
-        } else {
-          milestoneText = "Turning ${age + 1}";
-        }
-      }
-      subtitleText = "Born ${event.originalDate.year}";
-    } else {
-      final years = EventCalculator.getYearsTogether(event);
-      if (isToday) {
-        milestoneText = "${_ordinal(years + 1)} Anniversary!";
-      } else {
-        milestoneText = "${_ordinal(years + 1)} Anniversary";
-      }
-      subtitleText = "Since ${event.originalDate.year}";
-    }
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: InkWell(
-        onTap: () => _editEvent(event),
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: isToday ? BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: LinearGradient(
-              colors: [
-                const Color(0xFF10B981).withValues(alpha: 0.1),
-                Colors.transparent,
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ) : null,
-          child: Row(
-            children: [
-              // Icon
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  customType?.icon ?? (isBirthday ? Icons.cake_rounded : Icons.favorite_rounded),
-                  color: color,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Content
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(event.name, style: Theme.of(context).textTheme.titleMedium),
-                    Text(
-                      event.displayGroup,
-                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
-                    ),
-                    const SizedBox(height: AppSpace.xxs),
-                    Text(
-                      milestoneText,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            color: knownYear && customType == null ? color : Theme.of(context).colorScheme.onSurface,
-                          ),
-                    ),
-                    Text(subtitleText, style: Theme.of(context).textTheme.bodyMedium),
-                    const SizedBox(height: AppSpace.xxs),
-                    Text(
-                      daysUntil == 0 ? 'Today' : 'In $daysUntil days',
-                      style: Theme.of(context).textTheme.titleSmall,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  bool _isToday(int month, int day) {
-    final now = DateTime.now();
-    return now.month == month && now.day == day;
-  }
-
-  String _getOrdinalSuffix(int day) {
-    if (day >= 11 && day <= 13) return 'th';
-    switch (day % 10) {
-      case 1: return 'st';
-      case 2: return 'nd';
-      case 3: return 'rd';
-      default: return 'th';
-    }
-  }
-
-  String _ordinal(int n) {
-    if (n >= 11 && n <= 13) return '${n}th';
-    switch (n % 10) {
-      case 1: return '${n}st';
-      case 2: return '${n}nd';
-      case 3: return '${n}rd';
-      default: return '${n}th';
-    }
-  }
 }

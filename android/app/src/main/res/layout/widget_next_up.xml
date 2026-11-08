@@ -4,10 +4,16 @@
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:background="@drawable/widget_background"
     android:orientation="vertical" android:gravity="center_vertical"
-    android:padding="16dp">
-    <TextView android:id="@+id/next_when" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="12sp" android:textColor="@color/widget_accent" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:letterSpacing="0.08" android:text="IN 4 DAYS"/>
-    <TextView android:id="@+id/next_name" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="20sp" android:textColor="@color/widget_text" android:textStyle="bold" android:ellipsize="end" android:layout_marginTop="4dp" android:maxLines="2" android:text="Paul Gann"/>
-    <TextView android:id="@+id/next_detail" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="14sp" android:textColor="@color/widget_subtext" android:maxLines="1" android:ellipsize="end" android:layout_marginTop="2dp" android:text="Turns 59"/>
-    <TextView android:id="@+id/next_date" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="13sp" android:textColor="@color/widget_subtext" android:maxLines="1" android:ellipsize="end" android:layout_marginTop="8dp" android:text="Wed, Nov 11"/>
-    <TextView android:id="@+id/next_more" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="12sp" android:textColor="@color/widget_accent" android:maxLines="1" android:ellipsize="end" android:layout_marginTop="2dp" android:visibility="gone"/>
+    android:paddingStart="16dp" android:paddingEnd="16dp" android:paddingTop="14dp" android:paddingBottom="14dp">
+    <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:gravity="center_vertical">
+        <ImageView android:id="@+id/next_icon" android:layout_width="16dp" android:layout_height="16dp"
+            android:src="@drawable/ic_widget_cake" android:importantForAccessibility="no" />
+        <TextView android:id="@+id/next_when" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="12sp" android:textColor="@color/widget_accent" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:layout_marginStart="6dp" android:letterSpacing="0.08" android:text="IN 3 DAYS"/>
+    </LinearLayout>
+    <TextView android:id="@+id/next_name" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="20sp" android:textColor="@color/widget_text" android:textStyle="bold" android:maxLines="2" android:ellipsize="end" android:layout_marginTop="6dp" android:text="Paul Gann"/>
+    <TextView android:id="@+id/next_detail" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="14sp" android:textColor="@color/widget_subtext" android:maxLines="1" android:ellipsize="end" android:layout_marginTop="2dp" android:text="Turns 59 · Wed, Nov 11"/>
+    <View android:id="@+id/next_rule" android:layout_width="match_parent" android:layout_height="1dp"
+        android:layout_marginTop="10dp" android:background="@color/widget_divider" />
+    <TextView android:id="@+id/next_more" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="12sp" android:textColor="@color/widget_subtext" android:maxLines="1" android:ellipsize="end" android:layout_marginTop="8dp" android:text="Then Melanie Gann · Thu"/>
 </LinearLayout>
