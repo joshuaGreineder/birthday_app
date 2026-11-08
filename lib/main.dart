@@ -166,7 +166,8 @@ class _HapparooAppState extends State<HapparooApp> with WidgetsBindingObserver {
         : mode == ThemeMode.dark
             ? 'dark'
             : 'system';
-    storage.saveSetting('themeMode', modeString);
+    // Widgets follow the app's theme, so redraw them once the choice is saved.
+    storage.saveSetting('themeMode', modeString).then((_) => WidgetService.updateWidgetData());
   }
 
   @override

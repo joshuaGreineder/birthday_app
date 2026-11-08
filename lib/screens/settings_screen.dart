@@ -7,6 +7,7 @@ import '../services/notification_service.dart';
 import '../services/contact_parser_service.dart';
 import '../services/link_service.dart';
 import '../services/backup_codec.dart';
+import '../services/app_icon_service.dart';
 import '../services/backup_transfer.dart';
 import '../services/google_calendar_service.dart';
 import '../services/widget_service.dart';
@@ -54,6 +55,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void initState() {
     super.initState();
     _initAndLoadSettings();
+    _loadAppIcon();
   }
 
   Future<void> _initAndLoadSettings() async {
@@ -65,6 +67,73 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (mounted) {
       setState(() => _notificationAccess = access);
     }
+  }
+
+  String? _appIcon;
+
+  Future<void> _loadAppIcon() async {
+    if (!AppIconService.supported) return;
+    final icon = await AppIconService.current();
+    if (mounted) setState(() => _appIcon = icon);
+  }
+
+  Widget _appIconChoice(AppIconOption option) {
+    final scheme = Theme.of(context).colorScheme;
+    final selected = (_appIcon ?? AppIconService.options.first.id) == option.id;
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: '${option.label} app icon',
+      excludeSemantics: true,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppSpace.sm),
+        onTap: selected
+            ? null
+            : () async {
+                final ok = await AppIconService.set(option.id);
+                if (!mounted) return;
+                if (ok) setState(() => _appIcon = option.id);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(ok
+                        ? 'Icon changed. Your launcher may take a few seconds to update it.'
+                        : 'Could not change the icon on this device.'),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              },
+        child: Padding(
+          padding: const EdgeInsets.all(6),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: selected ? scheme.primary : Colors.transparent,
+                    width: 2.5,
+                  ),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: Image.asset(option.preview, width: 60, height: 60),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                option.label,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: selected ? scheme.primary : scheme.onSurface,
+                      fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _themeChip(String value, String label) {
@@ -456,6 +525,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               _themeChip('dark', 'Dark'),
                             ],
                           ),
+                          if (AppIconService.supported) ...[
+                            const SizedBox(height: AppSpace.md),
+                            const Divider(height: 1),
+                            const SizedBox(height: AppSpace.md),
+                            Text('App icon', style: Theme.of(context).textTheme.titleMedium),
+                            const SizedBox(height: AppSpace.xxs),
+                            Text(
+                              'The icon on your home screen and app drawer.',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                            const SizedBox(height: AppSpace.sm),
+                            Wrap(
+                              spacing: AppSpace.sm,
+                              runSpacing: AppSpace.sm,
+                              children: AppIconService.options.map(_appIconChoice).toList(),
+                            ),
+                          ],
                         ],
                       ),
                     ),

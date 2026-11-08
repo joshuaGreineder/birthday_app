@@ -41,7 +41,8 @@ class WidgetService {
       await storage.init();
       final names = {for (final t in storage.getAllCustomEventTypes()) t.id: t.name};
       final json = encodeEvents(storage.getAllEvents(), customTypeNames: names);
-      await _channel.invokeMethod('setWidgetEvents', {'json': json});
+      final theme = storage.getSetting('themeMode', defaultValue: 'system') as String? ?? 'system';
+      await _channel.invokeMethod('setWidgetEvents', {'json': json, 'theme': theme});
       await _channel.invokeMethod('updateWidgets');
     } catch (e) {
       debugPrint('Could not update home-screen widgets: $e');

@@ -32,30 +32,30 @@
         <LinearLayout android:id="@+id/up_date1" android:layout_width="40dp" android:layout_height="wrap_content"
             android:orientation="vertical" android:gravity="center" android:paddingTop="3dp" android:paddingBottom="3dp"
             android:background="@drawable/widget_date_bday">
-            <TextView android:id="@+id/up_wd1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="9sp" android:textColor="@color/widget_subtext" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:text="WED"/>
-            <TextView android:id="@+id/up_day1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="16sp" android:textColor="@color/widget_text" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:text="11"/>
+            <TextView android:id="@+id/up_wd1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="9sp" android:textColor="@color/widget_subtext" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:text="THU"/>
+            <TextView android:id="@+id/up_day1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="16sp" android:textColor="@color/widget_text" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:text="12"/>
         </LinearLayout>
         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
             android:orientation="vertical" android:layout_marginStart="10dp">
-            <TextView android:id="@+id/up_name1" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="14sp" android:textColor="@color/widget_text" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:text="Paul Gann"/>
-            <TextView android:id="@+id/up_detail1" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="12sp" android:textColor="@color/widget_subtext" android:maxLines="1" android:ellipsize="end" android:text="Turns 59"/>
+            <TextView android:id="@+id/up_name1" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="14sp" android:textColor="@color/widget_text" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:text="Melanie Gann"/>
+            <TextView android:id="@+id/up_detail1" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="12sp" android:textColor="@color/widget_subtext" android:maxLines="1" android:ellipsize="end" android:text="Turns 55"/>
         </LinearLayout>
-        <TextView android:id="@+id/up_when1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="12sp" android:textColor="@color/widget_subtext" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:layout_marginStart="8dp" android:paddingStart="8dp" android:paddingEnd="8dp" android:paddingTop="2dp" android:paddingBottom="2dp" android:text="4 days"/>
+        <TextView android:id="@+id/up_when1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="12sp" android:textColor="@color/widget_subtext" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:layout_marginStart="8dp" android:paddingStart="8dp" android:paddingEnd="8dp" android:paddingTop="2dp" android:paddingBottom="2dp" android:text="5 days"/>
     </LinearLayout>
     <LinearLayout android:id="@+id/up_row2" android:layout_width="match_parent" android:layout_height="wrap_content"
         android:orientation="horizontal" android:gravity="center_vertical" android:paddingTop="5dp" android:paddingBottom="5dp">
         <LinearLayout android:id="@+id/up_date2" android:layout_width="40dp" android:layout_height="wrap_content"
             android:orientation="vertical" android:gravity="center" android:paddingTop="3dp" android:paddingBottom="3dp"
             android:background="@drawable/widget_date_bday">
-            <TextView android:id="@+id/up_wd2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="9sp" android:textColor="@color/widget_subtext" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:text="WED"/>
-            <TextView android:id="@+id/up_day2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="16sp" android:textColor="@color/widget_text" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:text="11"/>
+            <TextView android:id="@+id/up_wd2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="9sp" android:textColor="@color/widget_subtext" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:text="SAT"/>
+            <TextView android:id="@+id/up_day2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="16sp" android:textColor="@color/widget_text" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:text="14"/>
         </LinearLayout>
         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
             android:orientation="vertical" android:layout_marginStart="10dp">
-            <TextView android:id="@+id/up_name2" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="14sp" android:textColor="@color/widget_text" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:text="Paul Gann"/>
-            <TextView android:id="@+id/up_detail2" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="12sp" android:textColor="@color/widget_subtext" android:maxLines="1" android:ellipsize="end" android:text="Turns 59"/>
+            <TextView android:id="@+id/up_name2" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="14sp" android:textColor="@color/widget_text" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:text="Michael Greineder"/>
+            <TextView android:id="@+id/up_detail2" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="12sp" android:textColor="@color/widget_subtext" android:maxLines="1" android:ellipsize="end" android:text="Turns 53"/>
         </LinearLayout>
-        <TextView android:id="@+id/up_when2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="12sp" android:textColor="@color/widget_subtext" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:layout_marginStart="8dp" android:paddingStart="8dp" android:paddingEnd="8dp" android:paddingTop="2dp" android:paddingBottom="2dp" android:text="4 days"/>
+        <TextView android:id="@+id/up_when2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="12sp" android:textColor="@color/widget_subtext" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:layout_marginStart="8dp" android:paddingStart="8dp" android:paddingEnd="8dp" android:paddingTop="2dp" android:paddingBottom="2dp" android:text="7 days"/>
     </LinearLayout>
     <LinearLayout android:id="@+id/up_row3" android:layout_width="match_parent" android:layout_height="wrap_content"
         android:orientation="horizontal" android:gravity="center_vertical" android:paddingTop="5dp" android:paddingBottom="5dp">
@@ -63,43 +63,43 @@
             android:orientation="vertical" android:gravity="center" android:paddingTop="3dp" android:paddingBottom="3dp"
             android:background="@drawable/widget_date_bday">
             <TextView android:id="@+id/up_wd3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="9sp" android:textColor="@color/widget_subtext" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:text="WED"/>
-            <TextView android:id="@+id/up_day3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="16sp" android:textColor="@color/widget_text" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:text="11"/>
+            <TextView android:id="@+id/up_day3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="16sp" android:textColor="@color/widget_text" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:text="18"/>
         </LinearLayout>
         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
             android:orientation="vertical" android:layout_marginStart="10dp">
-            <TextView android:id="@+id/up_name3" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="14sp" android:textColor="@color/widget_text" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:text="Paul Gann"/>
-            <TextView android:id="@+id/up_detail3" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="12sp" android:textColor="@color/widget_subtext" android:maxLines="1" android:ellipsize="end" android:text="Turns 59"/>
+            <TextView android:id="@+id/up_name3" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="14sp" android:textColor="@color/widget_text" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:text="Hunter Taylor"/>
+            <TextView android:id="@+id/up_detail3" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="12sp" android:textColor="@color/widget_subtext" android:maxLines="1" android:ellipsize="end" android:text="Turns 16"/>
         </LinearLayout>
-        <TextView android:id="@+id/up_when3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="12sp" android:textColor="@color/widget_subtext" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:layout_marginStart="8dp" android:paddingStart="8dp" android:paddingEnd="8dp" android:paddingTop="2dp" android:paddingBottom="2dp" android:text="4 days"/>
+        <TextView android:id="@+id/up_when3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="12sp" android:textColor="@color/widget_subtext" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:layout_marginStart="8dp" android:paddingStart="8dp" android:paddingEnd="8dp" android:paddingTop="2dp" android:paddingBottom="2dp" android:text="11 days"/>
     </LinearLayout>
     <LinearLayout android:id="@+id/up_row4" android:layout_width="match_parent" android:layout_height="wrap_content"
         android:orientation="horizontal" android:gravity="center_vertical" android:paddingTop="5dp" android:paddingBottom="5dp">
         <LinearLayout android:id="@+id/up_date4" android:layout_width="40dp" android:layout_height="wrap_content"
             android:orientation="vertical" android:gravity="center" android:paddingTop="3dp" android:paddingBottom="3dp"
             android:background="@drawable/widget_date_bday">
-            <TextView android:id="@+id/up_wd4" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="9sp" android:textColor="@color/widget_subtext" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:text="WED"/>
-            <TextView android:id="@+id/up_day4" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="16sp" android:textColor="@color/widget_text" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:text="11"/>
+            <TextView android:id="@+id/up_wd4" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="9sp" android:textColor="@color/widget_subtext" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:text="MON"/>
+            <TextView android:id="@+id/up_day4" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="16sp" android:textColor="@color/widget_text" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:text="14"/>
         </LinearLayout>
         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
             android:orientation="vertical" android:layout_marginStart="10dp">
-            <TextView android:id="@+id/up_name4" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="14sp" android:textColor="@color/widget_text" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:text="Paul Gann"/>
-            <TextView android:id="@+id/up_detail4" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="12sp" android:textColor="@color/widget_subtext" android:maxLines="1" android:ellipsize="end" android:text="Turns 59"/>
+            <TextView android:id="@+id/up_name4" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="14sp" android:textColor="@color/widget_text" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:text="Priscilla Mitchell"/>
+            <TextView android:id="@+id/up_detail4" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="12sp" android:textColor="@color/widget_subtext" android:maxLines="1" android:ellipsize="end" android:text="Turns 18"/>
         </LinearLayout>
-        <TextView android:id="@+id/up_when4" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="12sp" android:textColor="@color/widget_subtext" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:layout_marginStart="8dp" android:paddingStart="8dp" android:paddingEnd="8dp" android:paddingTop="2dp" android:paddingBottom="2dp" android:text="4 days"/>
+        <TextView android:id="@+id/up_when4" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="12sp" android:textColor="@color/widget_subtext" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:layout_marginStart="8dp" android:paddingStart="8dp" android:paddingEnd="8dp" android:paddingTop="2dp" android:paddingBottom="2dp" android:text="37 days"/>
     </LinearLayout>
     <LinearLayout android:id="@+id/up_row5" android:layout_width="match_parent" android:layout_height="wrap_content"
         android:orientation="horizontal" android:gravity="center_vertical" android:paddingTop="5dp" android:paddingBottom="5dp">
         <LinearLayout android:id="@+id/up_date5" android:layout_width="40dp" android:layout_height="wrap_content"
             android:orientation="vertical" android:gravity="center" android:paddingTop="3dp" android:paddingBottom="3dp"
             android:background="@drawable/widget_date_bday">
-            <TextView android:id="@+id/up_wd5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="9sp" android:textColor="@color/widget_subtext" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:text="WED"/>
-            <TextView android:id="@+id/up_day5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="16sp" android:textColor="@color/widget_text" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:text="11"/>
+            <TextView android:id="@+id/up_wd5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="9sp" android:textColor="@color/widget_subtext" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:text="FRI"/>
+            <TextView android:id="@+id/up_day5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="16sp" android:textColor="@color/widget_text" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:text="26"/>
         </LinearLayout>
         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
             android:orientation="vertical" android:layout_marginStart="10dp">
-            <TextView android:id="@+id/up_name5" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="14sp" android:textColor="@color/widget_text" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:text="Paul Gann"/>
-            <TextView android:id="@+id/up_detail5" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="12sp" android:textColor="@color/widget_subtext" android:maxLines="1" android:ellipsize="end" android:text="Turns 59"/>
+            <TextView android:id="@+id/up_name5" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="14sp" android:textColor="@color/widget_text" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:text="Maddy Greineder"/>
+            <TextView android:id="@+id/up_detail5" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="12sp" android:textColor="@color/widget_subtext" android:maxLines="1" android:ellipsize="end" android:text="Turns 21"/>
         </LinearLayout>
-        <TextView android:id="@+id/up_when5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="12sp" android:textColor="@color/widget_subtext" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:layout_marginStart="8dp" android:paddingStart="8dp" android:paddingEnd="8dp" android:paddingTop="2dp" android:paddingBottom="2dp" android:text="4 days"/>
+        <TextView android:id="@+id/up_when5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="12sp" android:textColor="@color/widget_subtext" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:layout_marginStart="8dp" android:paddingStart="8dp" android:paddingEnd="8dp" android:paddingTop="2dp" android:paddingBottom="2dp" android:text="49 days"/>
     </LinearLayout>
 </LinearLayout>

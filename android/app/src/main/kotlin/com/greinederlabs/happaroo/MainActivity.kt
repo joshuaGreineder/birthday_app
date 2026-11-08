@@ -38,6 +38,7 @@ class MainActivity : FlutterActivity() {
                         if (json != null) {
                             getSharedPreferences(WidgetData.PREFS, MODE_PRIVATE).edit()
                                 .putString(WidgetData.KEY_EVENTS, json)
+                                .putString(WidgetPalette.KEY_THEME, call.argument<String>("theme") ?: "system")
                                 .commit()
                             result.success(true)
                         } else {
@@ -51,6 +52,16 @@ class MainActivity : FlutterActivity() {
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, platformChannel)
             .setMethodCallHandler { call, result ->
                 when (call.method) {
+                    "getAppIcon" -> result.success(currentAppIcon())
+                    "setAppIcon" -> {
+                        val name = call.argument<String>("name")
+                        if (name == null || name !in appIcons) {
+                            result.error("INVALID_ARGUMENT", "Unknown icon: $name", null)
+                        } else {
+                            setAppIcon(name)
+                            result.success(true)
+                        }
+                    }
                     "openUrl" -> {
                         val url = call.argument<String>("url")
                         if (url.isNullOrBlank()) {
@@ -72,5 +83,46 @@ class MainActivity : FlutterActivity() {
     override fun onDestroy() {
         TimezoneChangeReceiver.detach()
         super.onDestroy()
+    }
+
+    /** Launcher aliases in AndroidManifest.xml, keyed by the name the app uses. */
+    private val appIcons = mapOf(
+        "calendar" to ".LauncherCalendar",
+        "classic" to ".LauncherClassic",
+        "light" to ".LauncherLight",
+    )
+
+    private fun aliasComponent(alias: String) =
+        android.content.ComponentName(packageName, packageName + alias)
+
+    private fun currentAppIcon(): String {
+        for ((name, alias) in appIcons) {
+            val state = packageManager.getComponentEnabledSetting(aliasComponent(alias))
+            val enabled = when (state) {
+                android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED -> true
+                android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DEFAULT -> name == "calendar"
+                else -> false
+            }
+            if (enabled) return name
+        }
+        return "calendar"
+    }
+
+    /** Turns on the chosen launcher alias first, then the others off, so there is always one icon. */
+    private fun setAppIcon(name: String) {
+        val pm = packageManager
+        pm.setComponentEnabledSetting(
+            aliasComponent(appIcons.getValue(name)),
+            android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+            android.content.pm.PackageManager.DONT_KILL_APP,
+        )
+        for ((other, alias) in appIcons) {
+            if (other == name) continue
+            pm.setComponentEnabledSetting(
+                aliasComponent(alias),
+                android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                android.content.pm.PackageManager.DONT_KILL_APP,
+            )
+        }
     }
 }

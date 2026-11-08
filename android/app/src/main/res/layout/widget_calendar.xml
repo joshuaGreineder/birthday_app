@@ -272,7 +272,7 @@
             </FrameLayout>
         </LinearLayout>
     </LinearLayout>
-    <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="4dp"
+    <FrameLayout android:id="@+id/cal_rule" android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="4dp"
         android:layout_marginStart="6dp" android:layout_marginEnd="6dp" android:background="@color/widget_divider" />
     <TextView android:id="@+id/cal_footer" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="12sp" android:textColor="@color/widget_subtext" android:maxLines="1" android:ellipsize="end" android:layout_marginTop="8dp" android:paddingStart="8dp" android:paddingEnd="8dp" android:text="11 Paul · 12 Melanie"/>
 </LinearLayout>

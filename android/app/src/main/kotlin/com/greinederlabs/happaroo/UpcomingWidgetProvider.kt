@@ -53,12 +53,17 @@ class UpcomingWidgetProvider : AppWidgetProvider() {
                 val shown = events.take(rowsThatFit(manager, id))
                 views.setViewVisibility(R.id.up_empty, if (events.isEmpty()) View.VISIBLE else View.GONE)
 
-                val text = WidgetData.color(context, R.color.widget_text)
-                val sub = WidgetData.color(context, R.color.widget_subtext)
-                val accent = WidgetData.color(context, R.color.widget_accent)
-                val onAccent = WidgetData.color(context, R.color.widget_on_accent)
-                val bday = WidgetData.color(context, R.color.widget_bday)
-                val anniv = WidgetData.color(context, R.color.widget_anniv)
+                val p = WidgetPalette.resolve(context)
+                val text = p.text
+                val sub = p.sub
+                val accent = p.accent
+                val onAccent = p.onAccent
+                val bday = p.bday
+                val anniv = p.anniv
+                views.setInt(R.id.widget_root, "setBackgroundResource", p.background)
+                views.setTextColor(R.id.up_title, text)
+                views.setTextColor(R.id.up_today, sub)
+                views.setTextColor(R.id.up_empty, sub)
 
                 for (i in 0 until MAX_ROWS) {
                     if (i >= shown.size) {
@@ -69,23 +74,25 @@ class UpcomingWidgetProvider : AppWidgetProvider() {
                     views.setViewVisibility(rowIds[i], View.VISIBLE)
                     views.setInt(
                         dateIds[i], "setBackgroundResource",
-                        if (u.item.birthday) R.drawable.widget_date_bday else R.drawable.widget_date_anniv,
+                        if (u.item.birthday) p.dateBday else p.dateAnniv,
                     )
                     views.setTextViewText(weekdayIds[i], WidgetData.weekdayShort(u.date).uppercase())
                     views.setTextColor(weekdayIds[i], if (u.item.birthday) bday else anniv)
                     views.setTextViewText(dayIds[i], u.date.dayOfMonth.toString())
                     views.setTextColor(dayIds[i], text)
                     views.setTextViewText(nameIds[i], u.item.name)
+                    views.setTextColor(nameIds[i], text)
                     views.setTextViewText(detailIds[i], WidgetData.detail(u))
+                    views.setTextColor(detailIds[i], sub)
 
                     views.setTextViewText(whenIds[i], WidgetData.countdown(u.days))
                     when {
                         u.days == 0L -> {
-                            views.setInt(whenIds[i], "setBackgroundResource", R.drawable.widget_pill_today)
+                            views.setInt(whenIds[i], "setBackgroundResource", p.pillToday)
                             views.setTextColor(whenIds[i], onAccent)
                         }
                         u.days <= 7L -> {
-                            views.setInt(whenIds[i], "setBackgroundResource", R.drawable.widget_pill_soon)
+                            views.setInt(whenIds[i], "setBackgroundResource", p.pillSoon)
                             views.setTextColor(whenIds[i], accent)
                         }
                         else -> {

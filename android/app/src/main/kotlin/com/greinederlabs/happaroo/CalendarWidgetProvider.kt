@@ -86,6 +86,14 @@ class CalendarWidgetProvider : AppWidgetProvider() {
                 val today = LocalDate.now()
                 val month = YearMonth.from(today).plusMonths(prefs.getInt(offsetKey(id), 0).toLong())
                 val locale = Locale.getDefault()
+                val p = WidgetPalette.resolve(context)
+                views.setInt(R.id.widget_root, "setBackgroundResource", p.background)
+                views.setTextColor(R.id.cal_title, p.text)
+                views.setTextColor(R.id.cal_prev, p.sub)
+                views.setTextColor(R.id.cal_next, p.sub)
+                views.setTextColor(R.id.cal_footer, p.sub)
+                views.setInt(R.id.cal_rule, "setBackgroundColor", p.divider)
+                weekdayIds.forEach { views.setTextColor(it, p.sub) }
 
                 views.setOnClickPendingIntent(R.id.cal_prev, actionIntent(context, id, ACTION_PREV, 1))
                 views.setOnClickPendingIntent(R.id.cal_next, actionIntent(context, id, ACTION_NEXT, 2))
@@ -116,12 +124,12 @@ class CalendarWidgetProvider : AppWidgetProvider() {
                     names.add(date.dayOfMonth to item.name)
                 }
 
-                val text = WidgetData.color(context, R.color.widget_text)
-                val sub = WidgetData.color(context, R.color.widget_subtext)
-                val accent = WidgetData.color(context, R.color.widget_accent)
-                val onAccent = WidgetData.color(context, R.color.widget_on_accent)
-                val bday = WidgetData.color(context, R.color.widget_bday)
-                val anniv = WidgetData.color(context, R.color.widget_anniv)
+                val text = p.text
+                val sub = p.sub
+                val accent = p.accent
+                val onAccent = p.onAccent
+                val bday = p.bday
+                val anniv = p.anniv
                 val first = month.atDay(1)
                 val lead = ((first.dayOfWeek.value - firstDay.value) + 7) % 7
                 val weeks = (lead + month.lengthOfMonth() + 6) / 7
@@ -139,11 +147,11 @@ class CalendarWidgetProvider : AppWidgetProvider() {
                     val a = dayNum in anniversaries
                     views.setTextViewText(cell, dayNum.toString())
                     val background = when {
-                        isToday && (a || b) -> R.drawable.widget_day_today_event
-                        isToday -> R.drawable.widget_day_today
-                        a && b -> R.drawable.widget_day_both
-                        b -> R.drawable.widget_day_bday
-                        a -> R.drawable.widget_day_anniv
+                        isToday && (a || b) -> p.dayTodayEvent
+                        isToday -> p.dayToday
+                        a && b -> p.dayBoth
+                        b -> p.dayBday
+                        a -> p.dayAnniv
                         else -> 0
                     }
                     views.setInt(cell, "setBackgroundResource", background)

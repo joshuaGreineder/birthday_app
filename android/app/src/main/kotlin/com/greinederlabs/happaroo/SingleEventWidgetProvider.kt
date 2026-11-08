@@ -25,10 +25,18 @@ class SingleEventWidgetProvider : AppWidgetProvider() {
             try {
                 val views = RemoteViews(context.packageName, R.layout.widget_next_up)
                 views.setOnClickPendingIntent(R.id.widget_root, WidgetData.openAppIntent(context))
+                val p = WidgetPalette.resolve(context)
+                views.setInt(R.id.widget_root, "setBackgroundResource", p.background)
+                views.setTextColor(R.id.next_when, p.accent)
+                views.setTextColor(R.id.next_name, p.text)
+                views.setTextColor(R.id.next_detail, p.sub)
+                views.setTextColor(R.id.next_more, p.sub)
+                views.setInt(R.id.next_rule, "setBackgroundColor", p.divider)
 
                 val upcoming = WidgetData.upcoming(WidgetData.load(context))
                 if (upcoming.isEmpty()) {
                     views.setImageViewResource(R.id.next_icon, R.drawable.ic_widget_cake)
+                    views.setInt(R.id.next_icon, "setColorFilter", p.bday)
                     views.setTextViewText(R.id.next_when, "HAPPAROO")
                     views.setTextViewText(R.id.next_name, "No events yet")
                     views.setTextViewText(R.id.next_detail, "Add a birthday in the app")
@@ -41,6 +49,7 @@ class SingleEventWidgetProvider : AppWidgetProvider() {
                         R.id.next_icon,
                         if (first.item.birthday) R.drawable.ic_widget_cake else R.drawable.ic_widget_heart,
                     )
+                    views.setInt(R.id.next_icon, "setColorFilter", if (first.item.birthday) p.bday else p.anniv)
                     views.setTextViewText(
                         R.id.next_when,
                         when (first.days) {
