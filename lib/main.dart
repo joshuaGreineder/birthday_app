@@ -124,6 +124,7 @@ class _HapparooAppState extends State<HapparooApp> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       NotificationService().onAppResumed();
       GoogleCalendarService().syncInBackground();
+      WidgetService.updateWidgetData();
     }
   }
 

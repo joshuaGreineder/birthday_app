@@ -1,4 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ic_launcher_background">#323852</color>
+    <color name="widget_bg">#FFFFFF</color>
+    <color name="widget_text">#191C28</color>
+    <color name="widget_subtext">#4B5267</color>
+    <color name="widget_accent">#C42F5C</color>
+    <color name="widget_on_accent">#FFFFFF</color>
+    <color name="widget_bday">#A2441A</color>
+    <color name="widget_anniv">#B02457</color>
+    <color name="widget_bday_tint">#1FA2441A</color>
+    <color name="widget_anniv_tint">#1FB02457</color>
+    <color name="widget_accent_tint">#1FC42F5C</color>
+    <color name="widget_divider">#DADEE8</color>
+    <color name="widget_bday_day">#40A2441A</color>
+    <color name="widget_anniv_day">#40B02457</color>
+    <color name="widget_both_day">#40C42F5C</color>
 </resources>

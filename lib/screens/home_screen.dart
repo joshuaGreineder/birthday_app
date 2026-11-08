@@ -305,134 +305,32 @@ class _HomeScreenState extends State<HomeScreen> {
             // Stats row
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                padding: const EdgeInsets.fromLTRB(AppSpace.md, AppSpace.xs, AppSpace.md, AppSpace.sm),
                 child: _buildStatsRow(),
               ),
             ),
-            // Time range filter
+            // Filters: two single-line rows that scroll sideways instead of wrapping.
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                padding: const EdgeInsets.only(bottom: AppSpace.xs),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.schedule_rounded,
-                          size: 16,
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Time Range',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: _timeRangeOptions.map((option) {
-                          final isSelected = _timeRange == option['value'];
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: ChoiceChip(
-                              label: Text(option['label']),
-                              selected: isSelected,
-                              onSelected: (selected) {
-                                if (selected) {
-                                  setState(() => _timeRange = option['value']);
-                                  _storage.setTimeRange(_timeRange);
-                                  _applyFilters();
-                                }
-                              },
-                              selectedColor: Theme.of(context).colorScheme.secondaryContainer,
-                              labelStyle: TextStyle(
-                                color: isSelected 
-                                    ? Theme.of(context).colorScheme.onSecondaryContainer 
-                                    : Theme.of(context).colorScheme.onSurface,
-                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                              ),
-                              showCheckmark: false,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                            ),
-                          );
-                        }).toList(),
+                    _chipRow([
+                      _buildFilterChip('All', 'all', null),
+                      _buildFilterChip('Birthdays', 'birthday', Icons.cake_rounded),
+                      _buildFilterChip('Anniversaries', 'anniversary', Icons.favorite_rounded),
+                      ..._customEventTypes.map(
+                        (customType) => _buildFilterChip(customType.name, customType.id, customType.icon),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            // Type filter chips
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.filter_list_rounded,
-                          size: 16,
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Event Type',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        _buildFilterChip('All', 'all', null),
-                        _buildFilterChip('Birthdays', 'birthday', Icons.cake_rounded),
-                        _buildFilterChip('Anniversaries', 'anniversary', Icons.favorite_rounded),
-                        // Add custom event type filters
-                        ..._customEventTypes.map((customType) => 
-                          _buildFilterChip(
-                            customType.name, 
-                            customType.id, 
-                            customType.icon
-                          )
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(AppSpace.lg, 0, AppSpace.lg, AppSpace.sm),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Group', style: Theme.of(context).textTheme.labelLarge),
+                      _chipDivider(),
+                      ..._timeRangeOptions.map(_buildTimeChip),
+                    ]),
                     const SizedBox(height: AppSpace.xs),
-                    Wrap(
-                      spacing: AppSpace.xs,
-                      runSpacing: AppSpace.xs,
-                      children: [
-                        _buildGroupChip('All groups', 'all'),
-                        ..._groupNames.map((name) => _buildGroupChip(name, name)),
-                      ],
-                    ),
+                    _chipRow([
+                      _buildGroupChip('All groups', 'all'),
+                      ..._groupNames.map((name) => _buildGroupChip(name, name)),
+                    ]),
                   ],
                 ),
               ),
@@ -495,19 +393,22 @@ class _HomeScreenState extends State<HomeScreen> {
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
-                      final event = _filteredEvents[index];
-                      return Dismissible(
+                      final row = _listRows[index];
+                      if (row is String) return _buildMonthHeader(row);
+                      final event = row as Event;
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 6),
+                        child: Dismissible(
                         key: Key(event.id),
                         direction: DismissDirection.endToStart,
                         background: Container(
                           alignment: Alignment.centerRight,
                           padding: const EdgeInsets.only(right: 24),
-                          margin: const EdgeInsets.symmetric(vertical: 6),
                           decoration: BoxDecoration(
-                            color: Colors.red.shade400,
-                            borderRadius: BorderRadius.circular(16),
+                            color: Theme.of(context).colorScheme.error,
+                            borderRadius: BorderRadius.circular(AppSpace.sm),
                           ),
-                          child: const Icon(Icons.delete_rounded, color: Colors.white, size: 28),
+                          child: Icon(Icons.delete_rounded, color: Theme.of(context).colorScheme.onError),
                         ),
                         confirmDismiss: (direction) async {
                           return await showDialog<bool>(
@@ -546,9 +447,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           event: event,
                           onTap: () => _editEvent(event),
                         ),
+                        ),
                       );
                     },
-                    childCount: _filteredEvents.length,
+                    childCount: _listRows.length,
                   ),
                 ),
               ),
@@ -602,6 +504,94 @@ class _HomeScreenState extends State<HomeScreen> {
     return parts.join(' · ');
   }
 
+  static const List<String> _monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+  ];
+
+  /// Filtered events with a month heading before each new month.
+  List<Object> get _listRows {
+    final rows = <Object>[];
+    String? current;
+    final thisYear = DateTime.now().year;
+    for (final event in _filteredEvents) {
+      final next = EventCalculator.getNextOccurrence(event);
+      final heading = next.year == thisYear
+          ? _monthNames[next.month - 1]
+          : '${_monthNames[next.month - 1]} ${next.year}';
+      if (heading != current) {
+        rows.add(heading);
+        current = heading;
+      }
+      rows.add(event);
+    }
+    return rows;
+  }
+
+  Widget _buildMonthHeader(String title) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, AppSpace.sm, 4, 6),
+      child: Semantics(
+        header: true,
+        child: Text(
+          title.toUpperCase(),
+          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: scheme.onSurfaceVariant,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.1,
+              ),
+        ),
+      ),
+    );
+  }
+
+  Widget _chipRow(List<Widget> chips) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: AppSpace.md),
+      child: Row(
+        children: [
+          for (var i = 0; i < chips.length; i++) ...[
+            if (i > 0) const SizedBox(width: AppSpace.xs),
+            chips[i],
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _chipDivider() {
+    return Container(
+      width: 1,
+      height: 24,
+      color: Theme.of(context).colorScheme.outlineVariant,
+    );
+  }
+
+  Widget _buildTimeChip(Map<String, dynamic> option) {
+    final value = option['value'] as int;
+    final selected = _timeRange == value;
+    final scheme = Theme.of(context).colorScheme;
+    const labels = {365: 'Any time', 7: '7 days', 30: '30 days', 90: '3 months', 180: '6 months'};
+    return ChoiceChip(
+      label: Text(labels[value] ?? option['label'] as String),
+      selected: selected,
+      onSelected: (next) {
+        if (!next) return;
+        setState(() => _timeRange = value);
+        _storage.setTimeRange(_timeRange);
+        _applyFilters();
+      },
+      selectedColor: scheme.secondaryContainer,
+      labelStyle: TextStyle(
+        color: selected ? scheme.onSecondaryContainer : scheme.onSurface,
+        fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+      ),
+      showCheckmark: false,
+    );
+  }
+
   Widget _buildFilterChip(String label, String value, IconData? icon) {
     final isSelected = _filterType == value;
     final scheme = Theme.of(context).colorScheme;
@@ -632,66 +622,43 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  /// One quiet line of totals: "37 birthdays · 6 anniversaries · 3 this week".
   Widget _buildStatsRow() {
     final birthdays = _allEvents.where((e) => e.eventType == EventType.birthday).length;
     final anniversaries = _allEvents.where((e) => e.eventType == EventType.anniversary).length;
     final thisWeek = _upcomingEvents.where((e) => EventCalculator.getDaysUntil(e) <= 7).length;
-
-    final cards = [
-      _buildStatCard(Icons.cake_rounded, 'Birthdays', birthdays,
-          EventPalette.accent(context, birthday: true)),
-      _buildStatCard(Icons.favorite_rounded, 'Anniversaries', anniversaries,
-          EventPalette.accent(context, birthday: false)),
-      _buildStatCard(Icons.notifications_active_rounded, 'This week', thisWeek,
-          Theme.of(context).colorScheme.primary),
-    ];
-    // Three across on every phone; stack only when large text would not fit.
-    final narrow = MediaQuery.textScalerOf(context).scale(1) > 1.3;
-    if (narrow) {
-      return Column(
-        children: [
-          for (var i = 0; i < cards.length; i++) ...[
-            if (i > 0) const SizedBox(height: AppSpace.xs),
-            cards[i],
-          ],
-        ],
-      );
-    }
-    return Row(
+    return Wrap(
+      spacing: AppSpace.md,
+      runSpacing: AppSpace.xs,
       children: [
-        for (var i = 0; i < cards.length; i++) ...[
-          if (i > 0) const SizedBox(width: AppSpace.xs),
-          Expanded(child: cards[i]),
-        ],
+        _buildStat(Icons.cake_rounded, birthdays, birthdays == 1 ? 'birthday' : 'birthdays',
+            EventPalette.accent(context, birthday: true)),
+        _buildStat(Icons.favorite_rounded, anniversaries,
+            anniversaries == 1 ? 'anniversary' : 'anniversaries',
+            EventPalette.accent(context, birthday: false)),
+        _buildStat(Icons.notifications_active_rounded, thisWeek, 'this week',
+            Theme.of(context).colorScheme.primary),
       ],
     );
   }
 
-  Widget _buildStatCard(IconData icon, String label, int value, Color color) {
+  Widget _buildStat(IconData icon, int value, String label, Color color) {
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
     return Semantics(
       label: '$value $label',
-      child: Container(
-        padding: const EdgeInsets.all(AppSpace.sm),
-        decoration: BoxDecoration(
-          color: scheme.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(AppSpace.md),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: color),
-            const SizedBox(height: AppSpace.xs),
-            Text('$value', style: text.headlineSmall),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
-            ),
-          ],
-        ),
+      excludeSemantics: true,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 18),
+          const SizedBox(width: 6),
+          Text('$value', style: text.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(label, style: text.bodyMedium?.copyWith(color: scheme.onSurfaceVariant)),
+          ),
+        ],
       ),
     );
   }

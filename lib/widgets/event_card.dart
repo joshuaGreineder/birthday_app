@@ -106,62 +106,134 @@ class EventCard extends StatelessWidget {
       detail = daysUntil == 0 ? 'Anniversary today' : '$years years together';
     }
 
+    final next = EventCalculator.getNextOccurrence(event);
+    const weekdays = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
     final when = daysUntil == 0
         ? 'Today'
         : daysUntil == 1
             ? 'Tomorrow'
-            : 'In $daysUntil days';
+            : '$daysUntil days';
+    final soon = daysUntil <= 7;
+    final hasGroup = event.group.trim().isNotEmpty;
+    // At very large text the pill moves under the name so the name keeps its width.
+    final stacked = MediaQuery.textScalerOf(context).scale(1) > 1.3;
+    final pill = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: daysUntil == 0
+            ? scheme.primary
+            : soon
+                ? scheme.primary.withValues(alpha: 0.12)
+                : Colors.transparent,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        when,
+        style: text.labelLarge?.copyWith(
+          color: daysUntil == 0
+              ? scheme.onPrimary
+              : soon
+                  ? scheme.primary
+                  : scheme.onSurfaceVariant,
+          fontWeight: FontWeight.w700,
+          fontFeatures: const [FontFeature.tabularFigures()],
+        ),
+      ),
+    );
+    final subtitle = hasGroup ? '$milestone · ${event.displayGroup}' : milestone;
 
+    // One scannable row: date | name + what's happening | countdown.
     return Semantics(
       button: onTap != null,
-      label: '${event.name}, ${event.displayGroup}, $milestone, $detail, $when',
-      child: Card(
-        margin: const EdgeInsets.symmetric(vertical: AppSpace.xs),
+      label: '${event.name}, ${event.displayGroup}, $milestone, $detail, '
+          '${formatMonthDay(next)}, ${daysUntil == 0 ? 'today' : 'in $daysUntil days'}',
+      excludeSemantics: true,
+      child: Material(
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(AppSpace.sm),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(AppSpace.md),
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpace.md),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: AppSpace.touch,
-                  height: AppSpace.touch,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: EventPalette.tint(context, iconColor),
-                    borderRadius: BorderRadius.circular(AppSpace.sm),
-                  ),
-                  child: Icon(
-                    customType?.icon ?? (isBirthday ? Icons.cake_rounded : Icons.favorite_rounded),
-                    color: iconColor,
-                  ),
-                ),
-                const SizedBox(width: AppSpace.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(event.name, style: text.titleMedium),
-                      Text(
-                        event.displayGroup,
-                        style: text.labelLarge?.copyWith(color: scheme.onSurfaceVariant),
-                      ),
-                      const SizedBox(height: AppSpace.xxs),
-                      Text(milestone, style: text.titleSmall?.copyWith(color: accent)),
-                      Text(detail, style: text.bodyMedium?.copyWith(color: scheme.onSurfaceVariant)),
-                      const SizedBox(height: AppSpace.xs),
-                      Text(
-                        when,
-                        style: text.titleSmall?.copyWith(
-                          color: daysUntil <= 7 ? scheme.primary : scheme.onSurfaceVariant,
+          borderRadius: BorderRadius.circular(AppSpace.sm),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 64),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpace.sm, vertical: AppSpace.xs),
+              child: Row(
+                children: [
+                  Container(
+                    width: 48,
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    decoration: BoxDecoration(
+                      color: EventPalette.tint(context, iconColor),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          weekdays[next.weekday - 1],
+                          style: text.labelSmall?.copyWith(
+                            color: iconColor,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.6,
+                          ),
                         ),
-                      ),
-                    ],
+                        Text(
+                          '${next.day}',
+                          style: text.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            height: 1.1,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: AppSpace.sm),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              customType?.icon ??
+                                  (isBirthday ? Icons.cake_rounded : Icons.favorite_rounded),
+                              size: 16,
+                              color: iconColor,
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                event.name,
+                                maxLines: stacked ? 3 : 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: text.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          subtitle,
+                          maxLines: stacked ? 3 : 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: text.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+                        ),
+                        if (stacked) ...[
+                          const SizedBox(height: 4),
+                          pill,
+                        ],
+                      ],
+                    ),
+                  ),
+                  if (!stacked) ...[
+                    const SizedBox(width: AppSpace.sm),
+                    pill,
+                  ],
+                ],
+              ),
             ),
           ),
         ),

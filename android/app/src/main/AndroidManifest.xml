@@ -60,8 +60,9 @@
             android:name="flutterEmbedding"
             android:value="2" />
 
-        <!-- Widget Providers -->
+        <!-- Home-screen widgets. SingleEventWidgetProvider is "Next up"; its name is kept so placed widgets survive updates. -->
         <receiver android:name=".SingleEventWidgetProvider"
+            android:label="Next up"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -69,6 +70,26 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_single_event_info" />
+        </receiver>
+        <receiver android:name=".UpcomingWidgetProvider"
+            android:label="Upcoming"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_upcoming_info" />
+        </receiver>
+        <receiver android:name=".CalendarWidgetProvider"
+            android:label="Calendar"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_calendar_info" />
         </receiver>
 
         <!-- Delivers inexact reminders scheduled by flutter_local_notifications. -->

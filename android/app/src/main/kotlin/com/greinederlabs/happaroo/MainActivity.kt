@@ -1,6 +1,5 @@
 package com.greinederlabs.happaroo
 
-import android.content.ComponentName
 import android.content.Intent
 import android.net.Uri
 import androidx.annotation.NonNull
@@ -31,16 +30,18 @@ class MainActivity : FlutterActivity() {
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "updateWidgets" -> {
-                        updateAllWidgets()
+                        WidgetData.updateAll(this)
                         result.success(true)
                     }
-                    "setWidgetData" -> {
-                        val args = call.arguments as? Map<*, *>
-                        if (args != null) {
-                            setWidgetData(args)
+                    "setWidgetEvents" -> {
+                        val json = call.argument<String>("json")
+                        if (json != null) {
+                            getSharedPreferences(WidgetData.PREFS, MODE_PRIVATE).edit()
+                                .putString(WidgetData.KEY_EVENTS, json)
+                                .commit()
                             result.success(true)
                         } else {
-                            result.error("INVALID_ARGUMENT", "Arguments cannot be null", null)
+                            result.error("INVALID_ARGUMENT", "json is required", null)
                         }
                     }
                     else -> result.notImplemented()
@@ -71,52 +72,5 @@ class MainActivity : FlutterActivity() {
     override fun onDestroy() {
         TimezoneChangeReceiver.detach()
         super.onDestroy()
-    }
-
-    private fun setWidgetData(data: Map<*, *>) {
-        val prefs = getSharedPreferences("widget_data", MODE_PRIVATE)
-        val editor = prefs.edit()
-
-        editor.putBoolean("hasNextEvent", data["hasNextEvent"] as? Boolean ?: false)
-        editor.putString("nextEventName", data["nextEventName"] as? String ?: "")
-        editor.putString("nextEventAgeText", data["nextEventAgeText"] as? String ?: "")
-        editor.putInt("nextEventDaysUntil", (data["nextEventDaysUntil"] as? Number)?.toInt() ?: 0)
-        editor.putString("nextEventDate", data["nextEventDate"] as? String ?: "")
-
-        val eventCount = (data["eventCount"] as? Number)?.toInt() ?: 0
-        editor.putInt("eventCount", eventCount)
-
-        val events = data["events"] as? List<*>
-        if (events != null) {
-            for (i in 0 until 3) {
-                if (i < events.size) {
-                    val event = events[i] as? Map<*, *>
-                    if (event != null) {
-                        editor.putString("event${i}_name", event["name"] as? String ?: "")
-                        editor.putString("event${i}_ageText", event["ageText"] as? String ?: "")
-                        editor.putInt("event${i}_daysUntil", (event["daysUntil"] as? Number)?.toInt() ?: -1)
-                        editor.putString("event${i}_date", event["date"] as? String ?: "")
-                    }
-                } else {
-                    editor.remove("event${i}_name")
-                    editor.remove("event${i}_ageText")
-                    editor.remove("event${i}_daysUntil")
-                    editor.remove("event${i}_date")
-                }
-            }
-        }
-
-        editor.commit()
-    }
-
-    private fun updateAllWidgets() {
-        val appWidgetManager = android.appwidget.AppWidgetManager.getInstance(this)
-        val singleEventComponent = ComponentName(this, SingleEventWidgetProvider::class.java)
-        val singleEventIds = appWidgetManager.getAppWidgetIds(singleEventComponent)
-        if (singleEventIds.isNotEmpty()) {
-            for (widgetId in singleEventIds) {
-                EventWidgetProvider.updateAppWidget(this, appWidgetManager, widgetId)
-            }
-        }
     }
 }

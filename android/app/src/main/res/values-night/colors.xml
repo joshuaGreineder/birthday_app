@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="widget_bg">#1E2232</color>
+    <color name="widget_text">#ECEEF5</color>
+    <color name="widget_subtext">#A6ACC0</color>
+    <color name="widget_accent">#FF7E95</color>
+    <color name="widget_on_accent">#33101C</color>
+    <color name="widget_bday">#FFAA74</color>
+    <color name="widget_anniv">#FF9DC0</color>
+    <color name="widget_bday_tint">#29FFAA74</color>
+    <color name="widget_anniv_tint">#29FF9DC0</color>
+    <color name="widget_accent_tint">#29FF7E95</color>
+    <color name="widget_divider">#343A4F</color>
+    <color name="widget_bday_day">#4DFFAA74</color>
+    <color name="widget_anniv_day">#4DFF9DC0</color>
+    <color name="widget_both_day">#4DFF7E95</color>
+</resources>

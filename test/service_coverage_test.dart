@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:birthday_app/app_config.dart';
@@ -8,6 +9,7 @@ import 'package:birthday_app/services/link_service.dart';
 import 'package:birthday_app/services/notification_service.dart';
 import 'package:birthday_app/services/storage_service.dart';
 import 'package:birthday_app/services/widget_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_contacts/flutter_contacts.dart' as contacts;
 import 'package:flutter_test/flutter_test.dart';
@@ -150,7 +152,9 @@ void main() {
     expect(await ContactParserService().parseGoogleCalendar(), isEmpty);
   });
 
-  test('widget data is written through the channel and the preferences fallback', () async {
+  test('widget data sends every event to the native widgets', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
     SharedPreferences.setMockInitialValues({});
     final dir = Directory.systemTemp.createTempSync('happaroo_widget_svc');
     await StorageService().init(directory: dir.path);
@@ -160,36 +164,35 @@ void main() {
       eventType: EventType.birthday,
       originalDate: DateTime(1991, 8, 8),
     ));
+    await StorageService().addEvent(Event(
+      id: 'w2',
+      name: 'No Year',
+      eventType: EventType.anniversary,
+      originalDate: DateTime(4, 2, 29),
+    ));
 
     const channel = MethodChannel(kWidgetChannel);
-    final calls = <String>[];
+    final calls = <MethodCall>[];
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, (call) async {
-      calls.add(call.method);
+      calls.add(call);
       return true;
     });
     await WidgetService.initialize();
     await WidgetService.updateWidgetData();
-    expect(calls, contains('setWidgetData'));
+    expect(calls.map((c) => c.method), ['setWidgetEvents', 'updateWidgets']);
+    final rows = jsonDecode((calls.first.arguments as Map)['json'] as String) as List;
+    final byName = {for (final r in rows) (r as Map)['n']: r};
+    expect(byName['Widget Ada'], {'n': 'Widget Ada', 't': 'b', 'l': '', 'm': 8, 'd': 8, 'y': 1991});
+    expect(byName['No Year'], {'n': 'No Year', 't': 'a', 'l': '', 'm': 2, 'd': 29, 'y': 0});
 
+    // A missing native side is logged, never thrown.
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, (call) async {
       throw PlatformException(code: 'missing');
     });
     await WidgetService.updateWidgetData();
-    final prefs = await SharedPreferences.getInstance();
-    expect(prefs.getString('nextEventName'), 'Widget Ada');
-
     await StorageService().clearAllEvents();
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, (call) async => true);
-    await WidgetService.updateWidgetData();
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, (call) async {
-      throw PlatformException(code: 'missing');
-    });
-    await WidgetService.updateWidgetData();
-    expect(prefs.getBool('hasNextEvent'), isFalse);
 
     const platform = MethodChannel(kPlatformChannel);
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger

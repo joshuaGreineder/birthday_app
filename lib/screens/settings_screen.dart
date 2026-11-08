@@ -9,6 +9,7 @@ import '../services/link_service.dart';
 import '../services/backup_codec.dart';
 import '../services/backup_transfer.dart';
 import '../services/google_calendar_service.dart';
+import '../services/widget_service.dart';
 import '../utils/user_message.dart';
 import '../widgets/backup_preview_dialog.dart';
 import '../widgets/import_birthdays_dialog.dart';
@@ -327,6 +328,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         await _storage.deleteEvent(event.id);
       }
       GoogleCalendarService().syncInBackground();
+      WidgetService.updateWidgetData();
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -390,6 +392,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (!approved || !mounted) return;
       await _backup.apply(_storage, preview);
       GoogleCalendarService().syncInBackground();
+      WidgetService.updateWidgetData();
       if (!mounted) return;
       setState(() {});
       final added = preview.added.length;
@@ -1253,6 +1256,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           await _storage.addEvent(uniqueEvent);
         }
         GoogleCalendarService().syncInBackground();
+      WidgetService.updateWidgetData();
 
         if (mounted) {
           final message = StringBuffer();
