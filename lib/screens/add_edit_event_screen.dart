@@ -4,6 +4,7 @@ import '../models/event.dart';
 import '../models/custom_event_type.dart';
 import '../services/storage_service.dart';
 import '../services/notification_service.dart';
+import '../services/google_calendar_service.dart';
 import '../services/widget_service.dart';
 import '../theme/app_space.dart';
 import '../theme/app_theme.dart';
@@ -124,6 +125,7 @@ class _AddEditEventScreenState extends State<AddEditEventScreen> {
       WidgetService.updateWidgetData().catchError((e) {
         debugPrint('Error updating widget data: $e');
       });
+      GoogleCalendarService().syncInBackground();
     } catch (e) {
       if (mounted) {
         setState(() => _isSaving = false);
@@ -159,6 +161,7 @@ class _AddEditEventScreenState extends State<AddEditEventScreen> {
     if (confirmed == true && mounted) {
       try {
         await _storage.deleteEvent(widget.event!.id);
+        GoogleCalendarService().syncInBackground();
         try {
           if (_storage.getNotificationsEnabled()) {
             await NotificationService().scheduleDailyNotifications();

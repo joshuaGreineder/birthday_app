@@ -11,19 +11,8 @@ import 'package:birthday_app/services/widget_service.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_contacts/flutter_contacts.dart' as contacts;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-class _FakeClient extends http.BaseClient {
-  http.BaseRequest? sent;
-
-  @override
-  Future<http.StreamedResponse> send(http.BaseRequest request) async {
-    sent = request;
-    return http.StreamedResponse(Stream<List<int>>.value(const []), 204);
-  }
-}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -139,32 +128,26 @@ void main() {
     await service.onAppResumed();
     await service.onTimezoneChanged('UTC');
     final status = await service.getNotificationStatus();
-    expect(status['initialized'], isTrue);
+    // No plugin under test: start-up fails and is reported instead of hidden.
+    expect(status['initialized'], isFalse);
+    expect(status['initError'], isNotNull);
+    expect(await service.sendTestNotification(), isNotNull);
     expect(status.containsKey('scheduledCount'), isTrue);
   });
 
-  test('calendar sync stays off and the auth client forwards headers', () async {
+  test('calendar sync without a Google client ID stays unavailable and harmless', () async {
     final calendar = GoogleCalendarService();
-    expect(kCalendarSyncEnabled, isFalse);
-    expect(calendar.isAuthenticated, isFalse);
-    expect(await calendar.signIn(), isFalse);
-    await calendar.signOut();
-    final event = Event(
-      id: '1',
-      name: 'Ada',
-      eventType: EventType.birthday,
-      originalDate: DateTime(2000, 1, 1),
-    );
-    expect(await calendar.syncEventToCalendar(event), isFalse);
-    expect(await calendar.syncAllEvents([event]), isFalse);
+    expect(kCalendarSyncEnabled, isTrue);
+    expect(kGoogleServerClientId, isEmpty);
+    expect(calendar.isConfigured, isFalse);
+    expect(calendar.isConnected, isFalse);
+    final connect = await calendar.connect();
+    expect(connect.ok, isFalse);
+    expect(connect.message, contains('not set up'));
+    final sync = await calendar.syncNow();
+    expect(sync.ok, isFalse);
+    calendar.syncInBackground(); // no-op when not connected
     expect(await ContactParserService().parseGoogleCalendar(), isEmpty);
-
-    final fake = _FakeClient();
-    final client = GoogleAuthClient({'Authorization': 'Bearer test'}, client: fake);
-    final request = http.Request('GET', Uri.parse('https://example.com/calendars'));
-    final response = await client.send(request);
-    expect(response.statusCode, 204);
-    expect(fake.sent?.headers['Authorization'], 'Bearer test');
   });
 
   test('widget data is written through the channel and the preferences fallback', () async {

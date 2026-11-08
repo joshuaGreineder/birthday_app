@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'app_config.dart';
 import 'services/storage_service.dart';
 import 'services/notification_service.dart';
+import 'services/google_calendar_service.dart';
 import 'services/widget_service.dart';
 import 'screens/home_screen.dart';
 import 'screens/calendar_screen.dart';
@@ -40,6 +41,9 @@ Future<void> _initializeBackgroundServices() async {
 
     // Initialize widgets
     unawaited(_initializeWidgets());
+
+    // Catch up the Google calendar with anything changed while it was offline.
+    GoogleCalendarService().syncInBackground();
   } catch (e) {
     debugPrint('Background initialization error: $e');
   }
@@ -112,6 +116,7 @@ class _HapparooAppState extends State<HapparooApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       NotificationService().onAppResumed();
+      GoogleCalendarService().syncInBackground();
     }
   }
 

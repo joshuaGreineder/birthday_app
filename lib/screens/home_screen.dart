@@ -7,6 +7,7 @@ import '../models/event.dart';
 import '../models/custom_event_type.dart';
 import '../services/notification_service.dart';
 import '../services/storage_service.dart';
+import '../services/google_calendar_service.dart';
 import '../services/widget_service.dart';
 import '../widgets/permission_prompts.dart';
 import '../theme/app_space.dart';
@@ -535,6 +536,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         onDismissed: (direction) async {
                           await _storage.deleteEvent(event.id);
                           await _loadEvents();
+                          // Drop the deleted event's reminders and calendar entry.
+                          if (_storage.getNotificationsEnabled()) {
+                            NotificationService().scheduleDailyNotifications();
+                          }
+                          GoogleCalendarService().syncInBackground();
                         },
                         child: EventCard(
                           event: event,

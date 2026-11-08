@@ -85,6 +85,11 @@ android {
             if (releaseSigningReady) {
                 signingConfig = signingConfigs.getByName("release")
             }
+            // Gson rules for flutter_local_notifications. The notification icon is kept by res/raw/keep.xml.
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
     }
 

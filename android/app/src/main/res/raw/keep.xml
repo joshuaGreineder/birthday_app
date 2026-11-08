@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Release builds shrink unused resources. Dart code refers to the notification
+     icon by name, so R8 cannot see it is used and removes it. Without it,
+     flutter_local_notifications fails to start and no reminder is ever scheduled. -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/ic_stat_notification" />
