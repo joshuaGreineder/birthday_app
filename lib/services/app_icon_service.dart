@@ -18,8 +18,9 @@ class AppIconService {
 
   static const List<AppIconOption> options = [
     AppIconOption('calendar', 'Calendar', 'assets/app_icons/calendar.png'),
-    AppIconOption('classic', 'Classic', 'assets/app_icons/classic.png'),
-    AppIconOption('light', 'Light', 'assets/app_icons/light.png'),
+    AppIconOption('cake', 'Cake', 'assets/app_icons/cake.png'),
+    AppIconOption('balloons', 'Balloons', 'assets/app_icons/balloons.png'),
+    AppIconOption('roo', 'Roo', 'assets/app_icons/roo.png'),
   ];
 
   static bool get supported => !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
@@ -37,6 +38,7 @@ class AppIconService {
   /// Returns true when the launcher was told to switch.
   static Future<bool> set(String id) async {
     if (!supported || !options.any((o) => o.id == id)) return false;
+    // Classic and Light remain valid on the Android side for older installs.
     try {
       await _channel.invokeMethod('setAppIcon', {'name': id});
       return true;

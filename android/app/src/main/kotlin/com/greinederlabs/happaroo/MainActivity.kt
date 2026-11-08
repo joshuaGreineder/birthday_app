@@ -88,6 +88,10 @@ class MainActivity : FlutterActivity() {
     /** Launcher aliases in AndroidManifest.xml, keyed by the name the app uses. */
     private val appIcons = mapOf(
         "calendar" to ".LauncherCalendar",
+        "cake" to ".LauncherCake",
+        "balloons" to ".LauncherBalloons",
+        "roo" to ".LauncherRoo",
+        // Earlier choices, kept so switching away from them still works.
         "classic" to ".LauncherClassic",
         "light" to ".LauncherLight",
     )

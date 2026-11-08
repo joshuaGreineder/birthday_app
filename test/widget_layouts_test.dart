@@ -32,10 +32,14 @@ void main() {
         .allMatches(manifest)
         .map((m) => m.group(1)!)
         .toList();
-    expect(icons, ['ic_launcher', 'ic_launcher_classic', 'ic_launcher_light']);
+    expect(icons, ['ic_launcher', 'ic_launcher_cake', 'ic_launcher_balloons', 'ic_launcher_roo', 'ic_launcher_classic', 'ic_launcher_light']);
     for (final icon in icons) {
       expect(File('android/app/src/main/res/mipmap-anydpi-v26/$icon.xml').existsSync(), isTrue);
       expect(File('android/app/src/main/res/mipmap-xxxhdpi/$icon.png').existsSync(), isTrue);
+    }
+    // Every option the picker offers has a matching alias and preview.
+    for (final id in ['calendar', 'cake', 'balloons', 'roo']) {
+      expect(File('assets/app_icons/$id.png').existsSync(), isTrue);
     }
   });
 }

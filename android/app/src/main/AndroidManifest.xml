@@ -73,6 +73,44 @@
             </intent-filter>
         </activity-alias>
         <activity-alias
+            android:name=".LauncherCake"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/ic_launcher_cake"
+            android:label="Happaroo"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".LauncherBalloons"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/ic_launcher_balloons"
+            android:label="Happaroo"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".LauncherRoo"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/ic_launcher_roo"
+            android:label="Happaroo"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <!-- Classic and Light are no longer offered in the picker but stay declared,
+             so anyone who chose them in an earlier build keeps a launcher icon. -->
+        <activity-alias
             android:name=".LauncherClassic"
             android:targetActivity=".MainActivity"
             android:icon="@mipmap/ic_launcher_classic"
