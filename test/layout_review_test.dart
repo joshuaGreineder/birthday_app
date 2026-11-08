@@ -80,8 +80,8 @@ void main() {
       expect(contrast(scheme.onPrimaryContainer, scheme.primaryContainer), greaterThanOrEqualTo(4.5));
       expect(contrast(scheme.onSecondaryContainer, scheme.secondaryContainer), greaterThanOrEqualTo(4.5));
       expect(contrast(scheme.onError, scheme.error), greaterThanOrEqualTo(4.5));
-      final birthday = theme.brightness == Brightness.dark ? const Color(0xFFFFCC80) : const Color(0xFF7C2D12);
-      final anniversary = theme.brightness == Brightness.dark ? const Color(0xFFFFB2C8) : const Color(0xFF9D174D);
+      final birthday = theme.brightness == Brightness.dark ? const Color(0xFFFFAA74) : const Color(0xFFA2441A);
+      final anniversary = theme.brightness == Brightness.dark ? const Color(0xFFFF9DC0) : const Color(0xFFB02457);
       expect(contrast(birthday, scheme.surface), greaterThanOrEqualTo(4.5), reason: '${theme.brightness} birthday');
       expect(contrast(anniversary, scheme.surface), greaterThanOrEqualTo(4.5), reason: '${theme.brightness} anniversary');
       expect(contrast(birthday, scheme.surfaceContainerLow), greaterThanOrEqualTo(4.5));

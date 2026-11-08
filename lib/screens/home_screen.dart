@@ -10,6 +10,7 @@ import '../services/storage_service.dart';
 import '../services/widget_service.dart';
 import '../widgets/permission_prompts.dart';
 import '../theme/app_space.dart';
+import '../theme/app_theme.dart';
 import '../utils/event_calculator.dart';
 import '../utils/user_message.dart';
 import '../widgets/event_card.dart';
@@ -631,12 +632,15 @@ class _HomeScreenState extends State<HomeScreen> {
     final thisWeek = _upcomingEvents.where((e) => EventCalculator.getDaysUntil(e) <= 7).length;
 
     final cards = [
-      _buildStatCard(Icons.cake_rounded, 'Birthdays', birthdays),
-      _buildStatCard(Icons.favorite_rounded, 'Anniversaries', anniversaries),
-      _buildStatCard(Icons.notifications_active_rounded, 'This week', thisWeek),
+      _buildStatCard(Icons.cake_rounded, 'Birthdays', birthdays,
+          EventPalette.accent(context, birthday: true)),
+      _buildStatCard(Icons.favorite_rounded, 'Anniversaries', anniversaries,
+          EventPalette.accent(context, birthday: false)),
+      _buildStatCard(Icons.notifications_active_rounded, 'This week', thisWeek,
+          Theme.of(context).colorScheme.primary),
     ];
-    final narrow = MediaQuery.sizeOf(context).width < 520 ||
-        MediaQuery.textScalerOf(context).scale(1) > 1.3;
+    // Three across on every phone; stack only when large text would not fit.
+    final narrow = MediaQuery.textScalerOf(context).scale(1) > 1.3;
     if (narrow) {
       return Column(
         children: [
@@ -657,7 +661,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildStatCard(IconData icon, String label, int value) {
+  Widget _buildStatCard(IconData icon, String label, int value, Color color) {
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
     return Semantics(
@@ -666,15 +670,20 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.all(AppSpace.sm),
         decoration: BoxDecoration(
           color: scheme.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(AppSpace.sm),
-          border: Border.all(color: scheme.outlineVariant),
+          borderRadius: BorderRadius.circular(AppSpace.md),
         ),
         child: Column(
           children: [
-            Icon(icon, color: scheme.primary),
+            Icon(icon, color: color),
             const SizedBox(height: AppSpace.xs),
-            Text('$value', style: text.titleLarge),
-            Text(label, textAlign: TextAlign.center, style: text.bodyMedium),
+            Text('$value', style: text.headlineSmall),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+            ),
           ],
         ),
       ),

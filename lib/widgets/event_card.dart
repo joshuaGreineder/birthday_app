@@ -130,7 +130,7 @@ class EventCard extends StatelessWidget {
                   height: AppSpace.touch,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: scheme.primaryContainer,
+                    color: EventPalette.tint(context, iconColor),
                     borderRadius: BorderRadius.circular(AppSpace.sm),
                   ),
                   child: Icon(
@@ -150,9 +150,14 @@ class EventCard extends StatelessWidget {
                       ),
                       const SizedBox(height: AppSpace.xxs),
                       Text(milestone, style: text.titleSmall?.copyWith(color: accent)),
-                      Text(detail, style: text.bodyMedium),
+                      Text(detail, style: text.bodyMedium?.copyWith(color: scheme.onSurfaceVariant)),
                       const SizedBox(height: AppSpace.xs),
-                      Text(when, style: text.titleSmall?.copyWith(color: scheme.primary)),
+                      Text(
+                        when,
+                        style: text.titleSmall?.copyWith(
+                          color: daysUntil <= 7 ? scheme.primary : scheme.onSurfaceVariant,
+                        ),
+                      ),
                     ],
                   ),
                 ),
