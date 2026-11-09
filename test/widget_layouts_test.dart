@@ -16,7 +16,13 @@ void main() {
     final files = Directory('android/app/src/main/res')
         .listSync(recursive: true)
         .whereType<File>()
-        .where((f) => f.path.contains('/layout') && f.uri.pathSegments.last.startsWith('widget_'))
+        // Path segments, not '/': Windows paths use backslashes.
+        .where((f) {
+          final parts = f.uri.pathSegments;
+          return parts.length >= 2 &&
+              parts[parts.length - 2].startsWith('layout') &&
+              parts.last.startsWith('widget_');
+        })
         .toList();
     expect(files, isNotEmpty);
     final tag = RegExp(r'<([A-Za-z][\w.]*)[\s>/]');
