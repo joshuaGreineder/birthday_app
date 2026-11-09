@@ -22,6 +22,9 @@ class StorageService {
 
   StorageService._internal();
 
+  /// True once the boxes are open and settings can be read.
+  bool get isInitialized => _initialized;
+
   /// [directory] is a disk path for tests. The app leaves it null and uses Hive's
   /// Flutter path. [memory] opens empty in-memory boxes so a widget test is not
   /// blocked on disk I/O.

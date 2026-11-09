@@ -8,7 +8,7 @@ Happaroo is a birthday and event reminder. This policy describes what the app do
 
 Happaroo stores the names, dates, and notes you enter, along with custom event labels, colors, reminder choices, and your theme. That information is kept in a local database on the device (Hive). A home-screen widget may keep a copy of the next event's name and countdown on the device.
 
-Happaroo has no accounts and no server of its own.
+Happaroo has no accounts and no server of its own. Information leaves the device only if you turn on Google Calendar sync, described below.
 
 ## Contacts
 
@@ -20,7 +20,11 @@ Reminders are scheduled on the device. They are not sent through a push service.
 
 ## Google Calendar
 
-This version does not sync with Google Calendar. The app includes calendar-sync code that is switched off. While it is off, Happaroo does not sign you in to Google and does not send event names, notes, or dates to Google.
+Google Calendar sync is optional and off until you choose Connect Google Calendar in Settings. When you connect, you sign in with Google and allow Happaroo to create and manage its own calendar, named "Happaroo Birthdays". Happaroo asks only for that permission. It cannot see or change your other calendars or events.
+
+While sync is on, Happaroo sends each event's name, date, notes, and custom type label to that calendar in your Google account, and updates or removes them when you change them in the app. This goes directly from your device to Google. It does not pass through a Happaroo server. Google handles that data under its own privacy policy.
+
+To stop, choose Disconnect in Settings. You can keep the calendar or have Happaroo remove it. You can also remove Happaroo's access at any time in your Google Account under Security, Third-party apps and services.
 
 ## Analytics, advertising, and selling data
 
@@ -32,7 +36,7 @@ Happaroo does not turn off Android backup. If backup is enabled for the device, 
 
 ## Deleting information
 
-You can delete individual events in the app. Clear all data in Settings deletes saved events. Uninstalling Happaroo removes the app's local data from the device. There is no server copy to delete.
+You can delete individual events in the app. Clear all data in Settings deletes saved events. Uninstalling Happaroo removes the app's local data from the device. There is no Happaroo server copy to delete. If you used Google Calendar sync, the "Happaroo Birthdays" calendar stays in your Google account until you remove it with Disconnect and Remove calendar, or in Google Calendar.
 
 ## This policy
 

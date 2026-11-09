@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Happaroo</string>
-    <string name="widget_single_event_description">Shows your next upcoming event</string>
-    <string name="widget_three_events_description">Shows your next three upcoming events</string>
+    <string name="widget_next_up_description">Next up: the next birthday or anniversary and how many days away it is</string>
+    <string name="widget_upcoming_description">Upcoming: the next few birthdays and anniversaries in date order</string>
+    <string name="widget_calendar_description">Calendar: this month with birthdays and anniversaries marked</string>
 </resources>
-

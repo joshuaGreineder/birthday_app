@@ -2,22 +2,105 @@ import 'package:flutter/material.dart';
 
 import 'app_space.dart';
 
-/// Material 3 light and dark themes from one coral seed.
+/// Material 3 light and dark themes built from the app icon's palette.
 ///
-/// The seed matches the calendar icon header: coral into pink, with the pink
-/// heart as part of that same accent rather than a second brand color.
+/// Surfaces are the icon's navy (dark) and a cool blue-grey (light). Coral-pink,
+/// from the icon's calendar header, is the one brand accent. Orange marks
+/// birthdays and pink marks anniversaries, as on the icon.
+///
+/// The scheme is set explicitly rather than with [ColorScheme.fromSeed]: a coral
+/// seed tints every neutral warm, which is what made dark mode look brown.
 class AppTheme {
-  static const Color coral = Color(0xFFFF6F61);
+  /// Icon header gradient, for hero surfaces such as onboarding.
+  static const LinearGradient brandGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFFFF8A5B), Color(0xFFFF6B9D)],
+  );
 
   static ThemeData light() => _theme(Brightness.light);
 
   static ThemeData dark() => _theme(Brightness.dark);
 
-  static ThemeData _theme(Brightness brightness) {
-    final scheme = ColorScheme.fromSeed(
-      seedColor: coral,
+  static ColorScheme scheme(Brightness brightness) {
+    final base = ColorScheme.fromSeed(
+      seedColor: const Color(0xFFFF6B9D),
       brightness: brightness,
     );
+    if (brightness == Brightness.dark) {
+      return base.copyWith(
+        primary: const Color(0xFFFF7E95),
+        onPrimary: const Color(0xFF33101C),
+        primaryContainer: const Color(0xFF5A2338),
+        onPrimaryContainer: const Color(0xFFFFD9E2),
+        secondary: const Color(0xFFAFBBE8),
+        onSecondary: const Color(0xFF1A2140),
+        secondaryContainer: const Color(0xFF343E61),
+        onSecondaryContainer: const Color(0xFFE3E8FF),
+        tertiary: const Color(0xFFFFAA74),
+        onTertiary: const Color(0xFF3A1A06),
+        tertiaryContainer: const Color(0xFF5C3418),
+        onTertiaryContainer: const Color(0xFFFFDCC6),
+        error: const Color(0xFFFF8A80),
+        onError: const Color(0xFF3B0A08),
+        surface: const Color(0xFF151824),
+        onSurface: const Color(0xFFECEEF5),
+        onSurfaceVariant: const Color(0xFFA6ACC0),
+        surfaceDim: const Color(0xFF11131D),
+        surfaceBright: const Color(0xFF383F57),
+        surfaceContainerLowest: const Color(0xFF10121B),
+        surfaceContainerLow: const Color(0xFF1E2232),
+        surfaceContainer: const Color(0xFF232838),
+        surfaceContainerHigh: const Color(0xFF2A3043),
+        surfaceContainerHighest: const Color(0xFF333A50),
+        outline: const Color(0xFF6A7189),
+        outlineVariant: const Color(0xFF343A4F),
+        inverseSurface: const Color(0xFFECEEF5),
+        onInverseSurface: const Color(0xFF1E2232),
+        inversePrimary: const Color(0xFFC42F5C),
+        surfaceTint: Colors.transparent,
+        shadow: Colors.black,
+        scrim: Colors.black,
+      );
+    }
+    return base.copyWith(
+      primary: const Color(0xFFC42F5C),
+      onPrimary: Colors.white,
+      primaryContainer: const Color(0xFFFFE0E8),
+      onPrimaryContainer: const Color(0xFF5C0F29),
+      secondary: const Color(0xFF4A5888),
+      onSecondary: Colors.white,
+      secondaryContainer: const Color(0xFFE1E6F8),
+      onSecondaryContainer: const Color(0xFF1C2546),
+      tertiary: const Color(0xFFA2441A),
+      onTertiary: Colors.white,
+      tertiaryContainer: const Color(0xFFFFE3D2),
+      onTertiaryContainer: const Color(0xFF4A1C05),
+      error: const Color(0xFFB3261E),
+      onError: Colors.white,
+      surface: const Color(0xFFF5F6FA),
+      onSurface: const Color(0xFF191C28),
+      onSurfaceVariant: const Color(0xFF4B5267),
+      surfaceDim: const Color(0xFFDCDFE8),
+      surfaceBright: Colors.white,
+      surfaceContainerLowest: Colors.white,
+      surfaceContainerLow: Colors.white,
+      surfaceContainer: const Color(0xFFEEF0F6),
+      surfaceContainerHigh: const Color(0xFFE8EBF2),
+      surfaceContainerHighest: const Color(0xFFE0E4EC),
+      outline: const Color(0xFF8A90A4),
+      outlineVariant: const Color(0xFFDADEE8),
+      inverseSurface: const Color(0xFF232838),
+      onInverseSurface: const Color(0xFFECEEF5),
+      inversePrimary: const Color(0xFFFF7E95),
+      surfaceTint: Colors.transparent,
+      shadow: Colors.black,
+      scrim: Colors.black,
+    );
+  }
+
+  static ThemeData _theme(Brightness brightness) {
+    final scheme = AppTheme.scheme(brightness);
     final text = _text(scheme);
     final buttonText = WidgetStatePropertyAll(text.labelLarge);
     final minSize = const WidgetStatePropertyAll(Size(AppSpace.touch, AppSpace.touch));
@@ -71,6 +154,8 @@ class AppTheme {
         padding: const EdgeInsets.symmetric(horizontal: AppSpace.sm, vertical: AppSpace.xs),
         labelStyle: text.labelLarge,
         side: BorderSide(color: scheme.outlineVariant),
+        backgroundColor: scheme.surface,
+        selectedColor: scheme.secondaryContainer,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpace.sm)),
       ),
       listTileTheme: ListTileThemeData(
@@ -94,6 +179,11 @@ class AppTheme {
         hintStyle: text.bodyLarge?.copyWith(color: scheme.onSurfaceVariant),
       ),
       dividerTheme: DividerThemeData(color: scheme.outlineVariant),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: scheme.surfaceContainerLow,
+        indicatorColor: scheme.secondaryContainer,
+        surfaceTintColor: Colors.transparent,
+      ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         contentTextStyle: text.bodyMedium?.copyWith(color: scheme.onInverseSurface),
@@ -138,14 +228,20 @@ class AppTheme {
   }
 }
 
-/// Text colors for built-in birthdays and anniversaries.
-/// Checked against the theme surfaces so they meet WCAG AA.
+/// Colors for built-in birthdays (orange) and anniversaries (pink), from the icon.
+/// Text colors meet WCAG AA (4.5:1) on both themes' cards.
 class EventPalette {
   static Color accent(BuildContext context, {required bool birthday}) {
     final dark = Theme.of(context).brightness == Brightness.dark;
     if (birthday) {
-      return dark ? const Color(0xFFFFCC80) : const Color(0xFF7C2D12);
+      return dark ? const Color(0xFFFFAA74) : const Color(0xFFA2441A);
     }
-    return dark ? const Color(0xFFFFB2C8) : const Color(0xFF9D174D);
+    return dark ? const Color(0xFFFF9DC0) : const Color(0xFFB02457);
+  }
+
+  /// Soft fill behind an event's icon, derived from its accent.
+  static Color tint(BuildContext context, Color accent) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return accent.withValues(alpha: dark ? 0.16 : 0.12);
   }
 }

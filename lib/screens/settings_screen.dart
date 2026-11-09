@@ -7,7 +7,10 @@ import '../services/notification_service.dart';
 import '../services/contact_parser_service.dart';
 import '../services/link_service.dart';
 import '../services/backup_codec.dart';
+import '../services/app_icon_service.dart';
 import '../services/backup_transfer.dart';
+import '../services/google_calendar_service.dart';
+import '../services/widget_service.dart';
 import '../utils/user_message.dart';
 import '../widgets/backup_preview_dialog.dart';
 import '../widgets/import_birthdays_dialog.dart';
@@ -52,6 +55,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void initState() {
     super.initState();
     _initAndLoadSettings();
+    _loadAppIcon();
   }
 
   Future<void> _initAndLoadSettings() async {
@@ -63,6 +67,73 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (mounted) {
       setState(() => _notificationAccess = access);
     }
+  }
+
+  String? _appIcon;
+
+  Future<void> _loadAppIcon() async {
+    if (!AppIconService.supported) return;
+    final icon = await AppIconService.current();
+    if (mounted) setState(() => _appIcon = icon);
+  }
+
+  Widget _appIconChoice(AppIconOption option) {
+    final scheme = Theme.of(context).colorScheme;
+    final selected = (_appIcon ?? AppIconService.options.first.id) == option.id;
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: '${option.label} app icon',
+      excludeSemantics: true,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppSpace.sm),
+        onTap: selected
+            ? null
+            : () async {
+                final ok = await AppIconService.set(option.id);
+                if (!mounted) return;
+                if (ok) setState(() => _appIcon = option.id);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(ok
+                        ? 'Icon changed. Your launcher may take a few seconds to update it.'
+                        : 'Could not change the icon on this device.'),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              },
+        child: Padding(
+          padding: const EdgeInsets.all(6),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: selected ? scheme.primary : Colors.transparent,
+                    width: 2.5,
+                  ),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: Image.asset(option.preview, width: 60, height: 60),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                option.label,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: selected ? scheme.primary : scheme.onSurface,
+                      fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _themeChip(String value, String label) {
@@ -199,6 +270,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   _buildStatusRow('Initialized', status['initialized'] ?? false),
+                  if (status['initError'] != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      'Start-up error: ${status['initError']}',
+                      style: TextStyle(color: Theme.of(context).colorScheme.error),
+                    ),
+                  ],
                   _buildStatusRow('Permission Granted', status['permissionGranted'] ?? false),
                   if (!(status['permissionGranted'] ?? false)) ...[
                     const SizedBox(height: 8),
@@ -318,6 +396,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       for (final event in events) {
         await _storage.deleteEvent(event.id);
       }
+      GoogleCalendarService().syncInBackground();
+      WidgetService.updateWidgetData();
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -380,6 +460,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final approved = await showBackupPreview(context, preview);
       if (!approved || !mounted) return;
       await _backup.apply(_storage, preview);
+      GoogleCalendarService().syncInBackground();
+      WidgetService.updateWidgetData();
       if (!mounted) return;
       setState(() {});
       final added = preview.added.length;
@@ -443,6 +525,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               _themeChip('dark', 'Dark'),
                             ],
                           ),
+                          if (AppIconService.supported) ...[
+                            const SizedBox(height: AppSpace.md),
+                            const Divider(height: 1),
+                            const SizedBox(height: AppSpace.md),
+                            Text('App icon', style: Theme.of(context).textTheme.titleMedium),
+                            const SizedBox(height: AppSpace.xxs),
+                            Text(
+                              'The icon on your home screen and app drawer.',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                            const SizedBox(height: AppSpace.sm),
+                            Wrap(
+                              spacing: AppSpace.sm,
+                              runSpacing: AppSpace.sm,
+                              children: AppIconService.options.map(_appIconChoice).toList(),
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -590,6 +691,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               },
                             ),
                           ),
+                          const Divider(height: 1, indent: 16),
+                          ListTile(
+                            leading: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(
+                                Icons.notifications_active_rounded,
+                                color: Theme.of(context).colorScheme.primary,
+                                size: 20,
+                              ),
+                            ),
+                            title: const Text('Send test reminder'),
+                            subtitle: const Text('Shows a notification now so you can check it arrives'),
+                            onTap: () async {
+                              final problem = await _notificationService.sendTestNotification();
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(problem ?? 'Test reminder sent.'),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            },
+                          ),
                           // Helpful note about notifications working when app is closed
                           if (_notificationsEnabled) ...[
                             const Divider(height: 1, indent: 16),
@@ -724,6 +852,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 24),
+
+                  // Google Calendar section
+                  _buildSectionHeader('Google Calendar', Icons.event_available_rounded),
+                  const SizedBox(height: 12),
+                  _buildCard(child: _buildGoogleCalendarTiles()),
                   const SizedBox(height: 24),
 
                   // Import section
@@ -907,6 +1041,109 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  bool _calendarBusy = false;
+
+  Widget _calendarLeading(IconData icon) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: scheme.primary.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Icon(icon, color: scheme.primary, size: 20),
+    );
+  }
+
+  Widget _buildGoogleCalendarTiles() {
+    final calendar = GoogleCalendarService();
+    if (!calendar.isConfigured) {
+      return ListTile(
+        leading: _calendarLeading(Icons.event_busy_rounded),
+        title: const Text('Google Calendar sync unavailable'),
+        subtitle: const Text('This build was made without a Google sign-in setup.'),
+      );
+    }
+    if (!calendar.isConnected) {
+      return ListTile(
+        leading: _calendarLeading(Icons.add_link_rounded),
+        title: const Text('Connect Google Calendar'),
+        subtitle: const Text(
+          'Adds a "Happaroo Birthdays" calendar to your Google account and keeps it up to date. '
+          'Happaroo can only see that calendar.',
+        ),
+        trailing: _calendarBusy
+            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+            : const Icon(Icons.chevron_right_rounded, size: 20),
+        onTap: _calendarBusy ? null : () => _runCalendarAction(calendar.connect),
+      );
+    }
+    final last = calendar.lastSync;
+    final lastText = last == null
+        ? 'Not synced yet'
+        : 'Last synced ${MaterialLocalizations.of(context).formatShortDate(last)} '
+            '${MaterialLocalizations.of(context).formatTimeOfDay(TimeOfDay.fromDateTime(last))}';
+    return Column(
+      children: [
+        ListTile(
+          leading: _calendarLeading(Icons.sync_rounded),
+          title: const Text('Sync now'),
+          subtitle: Text('${calendar.accountEmail ?? 'Google account'} · $lastText'),
+          trailing: _calendarBusy
+              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+              : null,
+          onTap: _calendarBusy ? null : () => _runCalendarAction(calendar.syncNow),
+        ),
+        const Divider(height: 1, indent: 16),
+        ListTile(
+          leading: _calendarLeading(Icons.link_off_rounded),
+          title: const Text('Disconnect'),
+          subtitle: const Text('Stop syncing. You can keep or remove the calendar.'),
+          onTap: _calendarBusy ? null : _confirmCalendarDisconnect,
+        ),
+      ],
+    );
+  }
+
+  Future<void> _runCalendarAction(Future<CalendarSyncResult> Function() action) async {
+    setState(() => _calendarBusy = true);
+    final result = await action();
+    if (!mounted) return;
+    setState(() => _calendarBusy = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(result.message), behavior: SnackBarBehavior.floating),
+    );
+  }
+
+  Future<void> _confirmCalendarDisconnect() async {
+    final choice = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Disconnect Google Calendar?'),
+        content: const Text(
+          'Happaroo will stop updating the "Happaroo Birthdays" calendar. '
+          'You can keep the calendar as it is, or remove it from your Google account.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context, 'keep'), child: const Text('Keep calendar')),
+          TextButton(onPressed: () => Navigator.pop(context, 'remove'), child: const Text('Remove calendar')),
+        ],
+      ),
+    );
+    if (choice == null || !mounted) return;
+    setState(() => _calendarBusy = true);
+    final problem = await GoogleCalendarService().disconnect(removeCalendar: choice == 'remove');
+    if (!mounted) return;
+    setState(() => _calendarBusy = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(problem ?? 'Google Calendar disconnected.'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   Widget _buildSectionHeader(String title, IconData icon) {
     return Padding(
       padding: const EdgeInsets.only(left: 4),
@@ -932,7 +1169,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildCard({required Widget child}) {
     return Material(
-      color: Theme.of(context).colorScheme.surface,
+      color: Theme.of(context).colorScheme.surfaceContainerLow,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
@@ -1106,6 +1343,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           );
           await _storage.addEvent(uniqueEvent);
         }
+        GoogleCalendarService().syncInBackground();
+      WidgetService.updateWidgetData();
 
         if (mounted) {
           final message = StringBuffer();

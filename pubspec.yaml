@@ -50,7 +50,8 @@ dependencies:
   
   # Google Calendar & Contacts
   googleapis: ^13.0.0
-  google_sign_in: ^6.2.1
+  google_sign_in: ^7.2.0
+  extension_google_sign_in_as_googleapis_auth: ^3.0.0
   http: ^1.2.2
   flutter_contacts: ^1.1.7+1
   file_picker: ^8.1.7
@@ -91,6 +92,9 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  assets:
+    - assets/app_icons/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

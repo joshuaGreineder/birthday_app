@@ -49,19 +49,100 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
-            <intent-filter>
+            <!-- The launcher entries are the aliases below (one per app icon).
+                 This filter is only here so `flutter run` can find the main
+                 activity; tools:node="remove" keeps it out of the built app,
+                 otherwise the app would appear twice in the launcher. -->
+            <intent-filter tools:node="remove">
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
+        <!-- App icon choices (Settings > App icon). Exactly one is enabled at a time. -->
+        <activity-alias
+            android:name=".LauncherCalendar"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/ic_launcher"
+            android:label="Happaroo"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".LauncherCake"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/ic_launcher_cake"
+            android:label="Happaroo"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".LauncherBalloons"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/ic_launcher_balloons"
+            android:label="Happaroo"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".LauncherRoo"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/ic_launcher_roo"
+            android:label="Happaroo"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <!-- Classic and Light are no longer offered in the picker but stay declared,
+             so anyone who chose them in an earlier build keeps a launcher icon. -->
+        <activity-alias
+            android:name=".LauncherClassic"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/ic_launcher_classic"
+            android:label="Happaroo"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".LauncherLight"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/ic_launcher_light"
+            android:label="Happaroo"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
 
-        <!-- Widget Providers -->
+        <!-- Home-screen widgets. SingleEventWidgetProvider is "Next up"; its name is kept so placed widgets survive updates. -->
         <receiver android:name=".SingleEventWidgetProvider"
+            android:label="Next up"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -69,6 +150,26 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_single_event_info" />
+        </receiver>
+        <receiver android:name=".UpcomingWidgetProvider"
+            android:label="Upcoming"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_upcoming_info" />
+        </receiver>
+        <receiver android:name=".CalendarWidgetProvider"
+            android:label="Calendar"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_calendar_info" />
         </receiver>
 
         <!-- Delivers inexact reminders scheduled by flutter_local_notifications. -->

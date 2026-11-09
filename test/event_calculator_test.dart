@@ -118,6 +118,31 @@ void main() {
     expect(age['days'], greaterThan(0));
   });
 
+  test('under 2 shows months and days, 2 and older shows nothing extra', () {
+    final mira = birthday('Mira', DateTime(2025, 2, 6));
+    expect(EventCalculator.youngAgeText(mira, now: DateTime(2026, 11, 8)), '21 months, 2 days old');
+    expect(EventCalculator.youngAgeText(mira, now: DateTime(2026, 2, 6)), '12 months old');
+    expect(EventCalculator.youngAgeText(mira, now: DateTime(2027, 2, 5)), '23 months, 30 days old');
+    expect(EventCalculator.youngAgeText(mira, now: DateTime(2027, 2, 6)), isNull);
+    expect(EventCalculator.youngAgeText(mira, now: DateTime(2025, 2, 6)), 'Born today');
+    expect(EventCalculator.youngAgeText(mira, now: DateTime(2025, 2, 7)), '1 day old');
+    expect(EventCalculator.youngAgeText(mira, now: DateTime(2025, 3, 6)), '1 month old');
+    expect(EventCalculator.youngAgeText(mira, now: DateTime(2025, 1, 1)), isNull);
+
+    // Born on the 31st: the monthly anniversary falls on the last day of short months.
+    final late = birthday('Late', DateTime(2026, 1, 31));
+    expect(EventCalculator.youngAgeText(late, now: DateTime(2026, 2, 28)), '28 days old');
+    expect(EventCalculator.youngAgeText(late, now: DateTime(2026, 3, 1)), '1 month, 1 day old');
+
+    // Leap-day baby turns 2 on Feb 28 in a common year.
+    final leap = birthday('Leap', DateTime(2024, 2, 29));
+    expect(EventCalculator.youngAgeText(leap, now: DateTime(2026, 2, 28)), isNull);
+    expect(EventCalculator.youngAgeText(leap, now: DateTime(2026, 2, 27)), isNotNull);
+
+    expect(EventCalculator.youngAgeText(birthday('Adult', DateTime(1990, 5, 5))), isNull);
+    expect(EventCalculator.youngAgeText(anniversary('Us', DateTime(2025, 6, 1))), isNull);
+  });
+
   test('anniversary ordinals', () {
     final day = DateTime(2026, 11, 7);
     String textFor(int startYear) {

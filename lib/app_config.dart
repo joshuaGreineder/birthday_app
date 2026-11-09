@@ -8,9 +8,14 @@ const String kAppVersionLabel = '2.0.0+3';
 /// Canonical privacy policy. GitHub Pages can serve a draft from /docs until DNS is live.
 const String kPrivacyPolicyUrl = 'https://happaroo.com/privacy';
 
-/// Google Calendar sync is off for v1.
-/// The service and its packages stay in the project. Do not call Google sign-in while this is false.
-const bool kCalendarSyncEnabled = false;
+/// Google Calendar sync: Settings > Google Calendar keeps a "Happaroo Birthdays"
+/// calendar in the user's Google account in step with the app.
+const bool kCalendarSyncEnabled = true;
+
+/// OAuth *web* client ID from Google Cloud, passed at build time:
+///   flutter build apk --dart-define=GOOGLE_SERVER_CLIENT_ID=1234-abc.apps.googleusercontent.com
+/// Empty means the build has no Google setup, and Settings says calendar sync is unavailable.
+const String kGoogleServerClientId = String.fromEnvironment('GOOGLE_SERVER_CLIENT_ID');
 
 const String kWidgetChannel = 'com.greinederlabs.happaroo/widget';
 const String kTimezoneChannel = 'com.greinederlabs.happaroo/timezone';

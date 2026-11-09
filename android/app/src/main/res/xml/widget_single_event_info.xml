@@ -2,9 +2,13 @@
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:minWidth="110dp"
     android:minHeight="110dp"
+    android:minResizeWidth="110dp"
+    android:minResizeHeight="60dp"
+    android:targetCellWidth="2"
+    android:targetCellHeight="2"
     android:updatePeriodMillis="3600000"
-    android:initialLayout="@layout/widget_single_event"
-    android:description="@string/widget_single_event_description"
+    android:initialLayout="@layout/widget_next_up"
+    android:previewLayout="@layout/widget_next_up"
+    android:description="@string/widget_next_up_description"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen" />
-

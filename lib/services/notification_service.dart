@@ -25,6 +25,10 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _notifications =
       FlutterLocalNotificationsPlugin();
   bool _initialized = false;
+
+  /// Set when the plugin failed to start. Shown in Notification Status so a
+  /// broken setup is visible instead of silently scheduling nothing.
+  String? initError;
   Future<bool> _scheduleQueue = Future<bool>.value(false);
   static const MethodChannel _timezoneChannel = MethodChannel(kTimezoneChannel);
 
@@ -65,10 +69,13 @@ class NotificationService {
       );
       await _createNotificationChannels();
       _initialized = true;
+      initError = null;
       debugPrint('Notification service initialized');
     } catch (e) {
+      // Leave _initialized false so scheduling reports failure rather than
+      // pretending to succeed against a plugin that never started.
+      initError = '$e';
       debugPrint('Error initializing notification service: $e');
-      _initialized = true;
     }
   }
 
@@ -118,6 +125,7 @@ class NotificationService {
 
   String timezoneForOffsetHours(int offsetHours) {
     switch (offsetHours) {
+      case -4: // Eastern daylight time
       case -5:
         return 'America/New_York';
       case -6:
@@ -245,16 +253,7 @@ class NotificationService {
     final today = DateTime(now.year, now.month, now.day);
     var notificationId = 100;
 
-    const details = NotificationDetails(
-      android: AndroidNotificationDetails(
-        'event_reminder',
-        'Event Reminders',
-        channelDescription: 'Notifications for birthdays and anniversaries',
-        importance: Importance.high,
-        priority: Priority.high,
-        icon: '@drawable/ic_stat_notification',
-      ),
-    );
+    const details = _reminderDetails;
 
     for (final event in events) {
       final nextOccurrence = EventCalculator.getNextOccurrence(event);
@@ -299,6 +298,41 @@ class NotificationService {
       }
     }
   }
+
+  /// Shows a reminder right away so the user can confirm notifications reach them.
+  /// Returns null on success, or a short reason when it could not be shown.
+  Future<String?> sendTestNotification() async {
+    if (kIsWeb) return 'Notifications are not available here.';
+    if (!_initialized) await init();
+    if (!_initialized) return 'Notifications could not start: ${initError ?? 'unknown error'}';
+    final access = await notificationAccess();
+    if (access != NotificationAccess.granted) {
+      return 'Notifications are not allowed for Happaroo.';
+    }
+    try {
+      await _notifications.show(
+        1,
+        'Happaroo reminders are on',
+        'This is how birthday and anniversary reminders will look.',
+        _reminderDetails,
+      );
+      return null;
+    } catch (e) {
+      debugPrint('Error showing test notification: $e');
+      return 'Could not show a notification: $e';
+    }
+  }
+
+  static const NotificationDetails _reminderDetails = NotificationDetails(
+    android: AndroidNotificationDetails(
+      'event_reminder',
+      'Event Reminders',
+      channelDescription: 'Notifications for birthdays and anniversaries',
+      importance: Importance.high,
+      priority: Priority.high,
+      icon: '@drawable/ic_stat_notification',
+    ),
+  );
 
   String _formatNotificationMessage(Event event, {required int daysBefore}) {
     if (!EventCalculator.hasKnownYear(event)) {
@@ -365,6 +399,7 @@ class NotificationService {
   Future<Map<String, dynamic>> getNotificationStatus() async {
     final status = <String, dynamic>{
       'initialized': _initialized,
+      'initError': initError,
       'permissionGranted': false,
       'notificationsEnabled': false,
       'scheduledCount': 0,

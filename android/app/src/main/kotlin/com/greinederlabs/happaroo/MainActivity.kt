@@ -1,6 +1,5 @@
 package com.greinederlabs.happaroo
 
-import android.content.ComponentName
 import android.content.Intent
 import android.net.Uri
 import androidx.annotation.NonNull
@@ -31,16 +30,19 @@ class MainActivity : FlutterActivity() {
             .setMethodCallHandler { call, result ->
                 when (call.method) {
                     "updateWidgets" -> {
-                        updateAllWidgets()
+                        WidgetData.updateAll(this)
                         result.success(true)
                     }
-                    "setWidgetData" -> {
-                        val args = call.arguments as? Map<*, *>
-                        if (args != null) {
-                            setWidgetData(args)
+                    "setWidgetEvents" -> {
+                        val json = call.argument<String>("json")
+                        if (json != null) {
+                            getSharedPreferences(WidgetData.PREFS, MODE_PRIVATE).edit()
+                                .putString(WidgetData.KEY_EVENTS, json)
+                                .putString(WidgetPalette.KEY_THEME, call.argument<String>("theme") ?: "system")
+                                .commit()
                             result.success(true)
                         } else {
-                            result.error("INVALID_ARGUMENT", "Arguments cannot be null", null)
+                            result.error("INVALID_ARGUMENT", "json is required", null)
                         }
                     }
                     else -> result.notImplemented()
@@ -50,6 +52,16 @@ class MainActivity : FlutterActivity() {
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, platformChannel)
             .setMethodCallHandler { call, result ->
                 when (call.method) {
+                    "getAppIcon" -> result.success(currentAppIcon())
+                    "setAppIcon" -> {
+                        val name = call.argument<String>("name")
+                        if (name == null || name !in appIcons) {
+                            result.error("INVALID_ARGUMENT", "Unknown icon: $name", null)
+                        } else {
+                            setAppIcon(name)
+                            result.success(true)
+                        }
+                    }
                     "openUrl" -> {
                         val url = call.argument<String>("url")
                         if (url.isNullOrBlank()) {
@@ -73,50 +85,48 @@ class MainActivity : FlutterActivity() {
         super.onDestroy()
     }
 
-    private fun setWidgetData(data: Map<*, *>) {
-        val prefs = getSharedPreferences("widget_data", MODE_PRIVATE)
-        val editor = prefs.edit()
+    /** Launcher aliases in AndroidManifest.xml, keyed by the name the app uses. */
+    private val appIcons = mapOf(
+        "calendar" to ".LauncherCalendar",
+        "cake" to ".LauncherCake",
+        "balloons" to ".LauncherBalloons",
+        "roo" to ".LauncherRoo",
+        // Earlier choices, kept so switching away from them still works.
+        "classic" to ".LauncherClassic",
+        "light" to ".LauncherLight",
+    )
 
-        editor.putBoolean("hasNextEvent", data["hasNextEvent"] as? Boolean ?: false)
-        editor.putString("nextEventName", data["nextEventName"] as? String ?: "")
-        editor.putString("nextEventAgeText", data["nextEventAgeText"] as? String ?: "")
-        editor.putInt("nextEventDaysUntil", (data["nextEventDaysUntil"] as? Number)?.toInt() ?: 0)
-        editor.putString("nextEventDate", data["nextEventDate"] as? String ?: "")
+    private fun aliasComponent(alias: String) =
+        android.content.ComponentName(packageName, packageName + alias)
 
-        val eventCount = (data["eventCount"] as? Number)?.toInt() ?: 0
-        editor.putInt("eventCount", eventCount)
-
-        val events = data["events"] as? List<*>
-        if (events != null) {
-            for (i in 0 until 3) {
-                if (i < events.size) {
-                    val event = events[i] as? Map<*, *>
-                    if (event != null) {
-                        editor.putString("event${i}_name", event["name"] as? String ?: "")
-                        editor.putString("event${i}_ageText", event["ageText"] as? String ?: "")
-                        editor.putInt("event${i}_daysUntil", (event["daysUntil"] as? Number)?.toInt() ?: -1)
-                        editor.putString("event${i}_date", event["date"] as? String ?: "")
-                    }
-                } else {
-                    editor.remove("event${i}_name")
-                    editor.remove("event${i}_ageText")
-                    editor.remove("event${i}_daysUntil")
-                    editor.remove("event${i}_date")
-                }
+    private fun currentAppIcon(): String {
+        for ((name, alias) in appIcons) {
+            val state = packageManager.getComponentEnabledSetting(aliasComponent(alias))
+            val enabled = when (state) {
+                android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED -> true
+                android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DEFAULT -> name == "calendar"
+                else -> false
             }
+            if (enabled) return name
         }
-
-        editor.commit()
+        return "calendar"
     }
 
-    private fun updateAllWidgets() {
-        val appWidgetManager = android.appwidget.AppWidgetManager.getInstance(this)
-        val singleEventComponent = ComponentName(this, SingleEventWidgetProvider::class.java)
-        val singleEventIds = appWidgetManager.getAppWidgetIds(singleEventComponent)
-        if (singleEventIds.isNotEmpty()) {
-            for (widgetId in singleEventIds) {
-                EventWidgetProvider.updateAppWidget(this, appWidgetManager, widgetId)
-            }
+    /** Turns on the chosen launcher alias first, then the others off, so there is always one icon. */
+    private fun setAppIcon(name: String) {
+        val pm = packageManager
+        pm.setComponentEnabledSetting(
+            aliasComponent(appIcons.getValue(name)),
+            android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+            android.content.pm.PackageManager.DONT_KILL_APP,
+        )
+        for ((other, alias) in appIcons) {
+            if (other == name) continue
+            pm.setComponentEnabledSetting(
+                aliasComponent(alias),
+                android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                android.content.pm.PackageManager.DONT_KILL_APP,
+            )
         }
     }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'app_config.dart';
 import 'services/storage_service.dart';
 import 'services/notification_service.dart';
+import 'services/google_calendar_service.dart';
 import 'services/widget_service.dart';
 import 'screens/home_screen.dart';
 import 'screens/calendar_screen.dart';
@@ -13,10 +14,17 @@ import 'utils/user_message.dart';
 import 'widgets/app_bottom_bar.dart';
 import 'widgets/screen_status.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Start the app immediately - initialize everything in background
+  // Open local storage before the first frame so saved settings (theme first of
+  // all) are read from disk, not from defaults. Hive opens in well under a second.
+  try {
+    await StorageService().init();
+  } catch (e) {
+    debugPrint('Storage initialization error: $e');
+  }
+
   runApp(const HapparooApp());
 
   // Initialize all services in the background after app starts
@@ -40,6 +48,9 @@ Future<void> _initializeBackgroundServices() async {
 
     // Initialize widgets
     unawaited(_initializeWidgets());
+
+    // Catch up the Google calendar with anything changed while it was offline.
+    GoogleCalendarService().syncInBackground();
   } catch (e) {
     debugPrint('Background initialization error: $e');
   }
@@ -112,33 +123,37 @@ class _HapparooAppState extends State<HapparooApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       NotificationService().onAppResumed();
+      GoogleCalendarService().syncInBackground();
+      WidgetService.updateWidgetData();
     }
   }
 
   void _loadThemeMode() {
-    // Load theme asynchronously to not block UI
-    Future.microtask(() {
-      try {
-        final storage = StorageService();
-        final themeModeString = storage.getSetting('themeMode', defaultValue: 'system') as String;
-        if (mounted) {
-          setState(() {
-            switch (themeModeString) {
-              case 'light':
-                _themeMode = ThemeMode.light;
-                break;
-              case 'dark':
-                _themeMode = ThemeMode.dark;
-                break;
-              default:
-                _themeMode = ThemeMode.system;
-            }
-          });
-        }
-      } catch (e) {
-        debugPrint('Error loading theme mode: $e');
-      }
+    final storage = StorageService();
+    if (storage.isInitialized) {
+      _themeMode = _themeModeFrom(storage.getSetting('themeMode', defaultValue: 'system'));
+      return;
+    }
+    // Storage could not open before the first frame; apply the saved theme once it does.
+    storage.init().then((_) {
+      if (!mounted) return;
+      setState(() {
+        _themeMode = _themeModeFrom(storage.getSetting('themeMode', defaultValue: 'system'));
+      });
+    }).catchError((Object e) {
+      debugPrint('Error loading theme mode: $e');
     });
+  }
+
+  static ThemeMode _themeModeFrom(Object? value) {
+    switch (value) {
+      case 'light':
+        return ThemeMode.light;
+      case 'dark':
+        return ThemeMode.dark;
+      default:
+        return ThemeMode.system;
+    }
   }
 
   void updateThemeMode(ThemeMode mode) {
@@ -151,7 +166,8 @@ class _HapparooAppState extends State<HapparooApp> with WidgetsBindingObserver {
         : mode == ThemeMode.dark
             ? 'dark'
             : 'system';
-    storage.saveSetting('themeMode', modeString);
+    // Widgets follow the app's theme, so redraw them once the choice is saved.
+    storage.saveSetting('themeMode', modeString).then((_) => WidgetService.updateWidgetData());
   }
 
   @override

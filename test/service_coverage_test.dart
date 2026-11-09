@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:birthday_app/app_config.dart';
@@ -8,22 +9,12 @@ import 'package:birthday_app/services/link_service.dart';
 import 'package:birthday_app/services/notification_service.dart';
 import 'package:birthday_app/services/storage_service.dart';
 import 'package:birthday_app/services/widget_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_contacts/flutter_contacts.dart' as contacts;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-class _FakeClient extends http.BaseClient {
-  http.BaseRequest? sent;
-
-  @override
-  Future<http.StreamedResponse> send(http.BaseRequest request) async {
-    sent = request;
-    return http.StreamedResponse(Stream<List<int>>.value(const []), 204);
-  }
-}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -139,35 +130,31 @@ void main() {
     await service.onAppResumed();
     await service.onTimezoneChanged('UTC');
     final status = await service.getNotificationStatus();
-    expect(status['initialized'], isTrue);
+    // No plugin under test: start-up fails and is reported instead of hidden.
+    expect(status['initialized'], isFalse);
+    expect(status['initError'], isNotNull);
+    expect(await service.sendTestNotification(), isNotNull);
     expect(status.containsKey('scheduledCount'), isTrue);
   });
 
-  test('calendar sync stays off and the auth client forwards headers', () async {
+  test('calendar sync without a Google client ID stays unavailable and harmless', () async {
     final calendar = GoogleCalendarService();
-    expect(kCalendarSyncEnabled, isFalse);
-    expect(calendar.isAuthenticated, isFalse);
-    expect(await calendar.signIn(), isFalse);
-    await calendar.signOut();
-    final event = Event(
-      id: '1',
-      name: 'Ada',
-      eventType: EventType.birthday,
-      originalDate: DateTime(2000, 1, 1),
-    );
-    expect(await calendar.syncEventToCalendar(event), isFalse);
-    expect(await calendar.syncAllEvents([event]), isFalse);
+    expect(kCalendarSyncEnabled, isTrue);
+    expect(kGoogleServerClientId, isEmpty);
+    expect(calendar.isConfigured, isFalse);
+    expect(calendar.isConnected, isFalse);
+    final connect = await calendar.connect();
+    expect(connect.ok, isFalse);
+    expect(connect.message, contains('not set up'));
+    final sync = await calendar.syncNow();
+    expect(sync.ok, isFalse);
+    calendar.syncInBackground(); // no-op when not connected
     expect(await ContactParserService().parseGoogleCalendar(), isEmpty);
-
-    final fake = _FakeClient();
-    final client = GoogleAuthClient({'Authorization': 'Bearer test'}, client: fake);
-    final request = http.Request('GET', Uri.parse('https://example.com/calendars'));
-    final response = await client.send(request);
-    expect(response.statusCode, 204);
-    expect(fake.sent?.headers['Authorization'], 'Bearer test');
   });
 
-  test('widget data is written through the channel and the preferences fallback', () async {
+  test('widget data sends every event to the native widgets', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
     SharedPreferences.setMockInitialValues({});
     final dir = Directory.systemTemp.createTempSync('happaroo_widget_svc');
     await StorageService().init(directory: dir.path);
@@ -177,36 +164,35 @@ void main() {
       eventType: EventType.birthday,
       originalDate: DateTime(1991, 8, 8),
     ));
+    await StorageService().addEvent(Event(
+      id: 'w2',
+      name: 'No Year',
+      eventType: EventType.anniversary,
+      originalDate: DateTime(4, 2, 29),
+    ));
 
     const channel = MethodChannel(kWidgetChannel);
-    final calls = <String>[];
+    final calls = <MethodCall>[];
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, (call) async {
-      calls.add(call.method);
+      calls.add(call);
       return true;
     });
     await WidgetService.initialize();
     await WidgetService.updateWidgetData();
-    expect(calls, contains('setWidgetData'));
+    expect(calls.map((c) => c.method), ['setWidgetEvents', 'updateWidgets']);
+    final rows = jsonDecode((calls.first.arguments as Map)['json'] as String) as List;
+    final byName = {for (final r in rows) (r as Map)['n']: r};
+    expect(byName['Widget Ada'], {'n': 'Widget Ada', 't': 'b', 'l': '', 'm': 8, 'd': 8, 'y': 1991});
+    expect(byName['No Year'], {'n': 'No Year', 't': 'a', 'l': '', 'm': 2, 'd': 29, 'y': 0});
 
+    // A missing native side is logged, never thrown.
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, (call) async {
       throw PlatformException(code: 'missing');
     });
     await WidgetService.updateWidgetData();
-    final prefs = await SharedPreferences.getInstance();
-    expect(prefs.getString('nextEventName'), 'Widget Ada');
-
     await StorageService().clearAllEvents();
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, (call) async => true);
-    await WidgetService.updateWidgetData();
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(channel, (call) async {
-      throw PlatformException(code: 'missing');
-    });
-    await WidgetService.updateWidgetData();
-    expect(prefs.getBool('hasNextEvent'), isFalse);
 
     const platform = MethodChannel(kPlatformChannel);
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
